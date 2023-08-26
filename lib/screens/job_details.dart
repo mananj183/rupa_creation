@@ -1,11 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rupa_creation/modal/job_data.dart';
+import 'package:rupa_creation/provider/job_data.dart';
 import 'package:rupa_creation/provider/jobs.dart';
-
-import '../provider/job.dart';
 
 class JobDetailsScreen extends StatefulWidget {
   const JobDetailsScreen({Key? key}) : super(key: key);
@@ -84,7 +80,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       child: Container(
                                         color: Colors.green,
                                         padding: const EdgeInsets.all(14),
-                                        child: const Text("okay"),
+                                        child: const Text("Okay"),
                                       ),
                                     ),
                                   ],

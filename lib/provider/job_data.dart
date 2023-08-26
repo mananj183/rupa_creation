@@ -9,7 +9,6 @@ class JobData with ChangeNotifier{
   JobData({
     required this.jobId,
     required this.expectedDeliveryDate,
-    required this.isCompleted,
     required this.name,
     required this.startTime,
     List<String>? progressImagesUrl,
@@ -20,7 +19,6 @@ class JobData with ChangeNotifier{
   final String name;
   final DateTime? startTime;
   final DateTime? expectedDeliveryDate;
-  final bool? isCompleted;
   List<String> progressImagesUrl;
   List<Timestamp> timestamps;
 
@@ -29,7 +27,6 @@ class JobData with ChangeNotifier{
     return JobData(
         jobId: jobID,
         expectedDeliveryDate: DateTime.tryParse(json["expectedDeliveryDate"] ?? ""),
-        isCompleted: json["isCompleted"],
         name: json["name"],
         startTime: DateTime.tryParse(json["startTime"] ?? ""),
         progressImagesUrl: json["progressImagesUrl"] == null ? [] : List<String>.from(json["progressImagesUrl"]!.map((x) => x)),
@@ -38,19 +35,20 @@ class JobData with ChangeNotifier{
   }
 
   Future<void> addStartTime() async {
-    // timestamps.isNotEmpty ? print('addstarttime: ${timestamps.last.endTime}') : print('');
     if(timestamps.isNotEmpty && timestamps.last.endTime == timestamps.last.startTime){
-      print("error");
       throw Exception("Provide end time first");
     }
-    print("added start time");
-    final url = '${AppUrl.pendingProducts}/$jobId.json';
+    final url = '${AppUrl.pendingJobs}/$jobId.json';
     DateTime currentTime = DateTime.now();
     try {
-      List<Timestamp> newTimestamp = timestamps;
+      List<Timestamp> newTimestamp = List.from(timestamps);
       newTimestamp.add(Timestamp(endTime: currentTime, startTime: currentTime));
-      await http.patch(Uri.parse(url), body: json.encode({
-        'timeStamps': newTimestamp,
+      await http.put(Uri.parse(url), body: json.encode({
+        'expectedDeliveryDate': expectedDeliveryDate.toString(),
+        'name': name,
+        "startTime": startTime.toString(),
+        "progressImagesUrl": progressImagesUrl,
+        "timestamps": newTimestamp,
       }));
       timestamps.add(Timestamp(endTime: currentTime, startTime: currentTime));
       notifyListeners();
@@ -63,14 +61,17 @@ class JobData with ChangeNotifier{
     if(timestamps.isEmpty || timestamps.last.endTime != timestamps.last.startTime){
       throw Exception("Provide start time first");
     }
-    print("added end time");
-    final url = '${AppUrl.pendingProducts}/$jobId.json';
+    final url = '${AppUrl.pendingJobs}/$jobId.json';
     DateTime currentTime = DateTime.now();
     try {
-      List<Timestamp> newTimestamps = timestamps;
-      newTimestamps.last.endTime = currentTime;
+      List<Timestamp> newTimestamp = List.from(timestamps);
+      newTimestamp.last.endTime = currentTime;
       await http.put(Uri.parse(url), body: json.encode({
-        'timeStamps': newTimestamps,
+        'expectedDeliveryDate': expectedDeliveryDate.toString(),
+        'name': name,
+        "startTime": startTime.toString(),
+        "progressImagesUrl": progressImagesUrl,
+        "timestamps": newTimestamp,
       }));
       timestamps.last.endTime = currentTime;
       notifyListeners();
@@ -96,5 +97,4 @@ class Timestamp {
       startTime: DateTime.tryParse(json["startTime"] ?? ""),
     );
   }
-
 }

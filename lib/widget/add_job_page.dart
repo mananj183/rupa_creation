@@ -94,7 +94,7 @@ class _AddJobPageState extends State<AddJobPage> {
             });
             try {
               await jobs.addJob(
-                  jobNameController.value.text, startTime, endDatePicked);
+                  jobNameController.value.text, endDatePicked);
             }catch(e){
               await showDialog(context: context, builder: (ctx) => AlertDialog(
                 title: const Text('Error Occurred'),

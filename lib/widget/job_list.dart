@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rupa_creation/modal/job_data.dart';
+import 'package:rupa_creation/provider/job_data.dart';
 import 'package:rupa_creation/provider/jobs.dart';
 import 'package:rupa_creation/widget/job_overview.dart';
 
-import '../provider/job.dart';
 
 class JobList extends StatefulWidget {
   const JobList({
@@ -24,24 +23,26 @@ class _JobListState extends State<JobList> {
       setState(() {
         _isLoading = true;
       });
-      Provider.of<Jobs>(context, listen: false).fetchAndSetProducts().then((_) {
-        setState(() {
-          _isLoading = false;
+      try {
+        Provider.of<Jobs>(context, listen: false).fetchAndSetProducts().then((
+            _) {
+          setState(() {
+            _isLoading = false;
+          });
         });
-      });
+      }catch(e) {
+        print(e);
+      }
     });
   }
   @override
   Widget build(BuildContext context) {
     List<JobData> loadedProducts = Provider.of<Jobs>(context).pendingJobs;
-    for(int i =0; i<loadedProducts.length; i++){
-      print(loadedProducts[i].timestamps);
-    }
     return _isLoading ? const Center(child: CircularProgressIndicator(),) : ListView.builder(
       itemCount: loadedProducts.length,
       itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
         value: loadedProducts[i],
-        child: JobOverview(),
+        child: const JobOverview(),
       ),
     );
   }

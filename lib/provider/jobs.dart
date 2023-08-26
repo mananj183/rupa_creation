@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:rupa_creation/modal/job_data.dart';
+import 'package:rupa_creation/provider/job_data.dart';
 
 import '../utility/app_urls.dart';
 
@@ -15,19 +15,22 @@ class Jobs with ChangeNotifier{
   }
 
   Future<void> fetchAndSetProducts()async {
-    const url = '${AppUrl.pendingProducts}.json';
+    const url = '${AppUrl.pendingJobs}.json';
     try{
       final response = await http.get(Uri.parse(url));
+      if(response.body == 'null'){
+        return;
+      }
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       final List<JobData> loadedPendingJobs = [];
 
       extractedData.forEach((jobID, jobData) {
         JobData jd = JobData.fromJson(jobData, jobID);
-        loadedPendingJobs.add(JobData(jobId: jobID, name: jd.name, startTime: jd.startTime, expectedDeliveryDate: jd.expectedDeliveryDate, progressImagesUrl: jd.progressImagesUrl, timestamps: jd.timestamps, isCompleted: false));
+        loadedPendingJobs.add(JobData(jobId: jobID, name: jd.name, startTime: jd.startTime, expectedDeliveryDate: jd.expectedDeliveryDate, progressImagesUrl: jd.progressImagesUrl, timestamps: jd.timestamps));
       });
-      for(int i=0; i< loadedPendingJobs.length; i++){
-        print('${loadedPendingJobs[i].name}: ${loadedPendingJobs[i].timestamps}');
-      }
+      // for(int i=0; i< loadedPendingJobs.length; i++){
+      //   print('${loadedPendingJobs[i].name}: ${loadedPendingJobs[i].timestamps}');
+      // }
       _pendingJobs = loadedPendingJobs;
       notifyListeners();
     }catch(e){
@@ -35,18 +38,19 @@ class Jobs with ChangeNotifier{
     }
   }
 
-  Future<void> addJob(String name, DateTime? startTime, DateTime? endTime) async {
-    const url = '${AppUrl.pendingProducts}.json';
+  Future<void> addJob(String name, DateTime? endTime) async {
+    const url = '${AppUrl.pendingJobs}.json';
+    DateTime startTime = DateTime.now();
     try {
       final response = await http.post(Uri.parse(url), body: json.encode({
         'name': name,
-        'startTime': DateTime.now().toString(),
+        'startTime': startTime.toString(),
         'expectedDeliveryDate': endTime.toString(),
         'progressImagesUrl': [],
         'isCompleted': false,
         'timeStamps': []
       }));
-    JobData newJob = JobData(jobId: json.decode(response.body)['name'], name: name, expectedDeliveryDate: endTime, isCompleted: false, startTime: startTime);
+    JobData newJob = JobData(jobId: json.decode(response.body)['name'], name: name, expectedDeliveryDate: endTime, startTime: startTime);
     _pendingJobs.add(newJob);
     notifyListeners();
     }catch(e){

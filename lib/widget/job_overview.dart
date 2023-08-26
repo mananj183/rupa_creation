@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:rupa_creation/modal/job_data.dart';
+import 'package:rupa_creation/provider/job_data.dart';
 
 import '../screens/job_details.dart';
 
