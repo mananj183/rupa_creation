@@ -24,21 +24,22 @@ class JobData with ChangeNotifier{
   List<String> progressImagesUrl;
   List<Timestamp> timestamps;
 
-  factory JobData.fromJson(Map<String, dynamic> json){
+  factory JobData.fromJson(Map<String, dynamic> json, String jobID){
+    print(json);
     return JobData(
-      jobId: json["jobID"],
-      expectedDeliveryDate: DateTime.tryParse(json["expectedDeliveryDate"] ?? ""),
-      isCompleted: json["isCompleted"],
-      name: json["name"],
-      startTime: DateTime.tryParse(json["startTime"] ?? ""),
-      progressImagesUrl: json["progressImagesUrl"] == null ? [] : List<String>.from(json["progressImagesUrl"]!.map((x) => x)),
-      timestamps: json["timestamps"] == null ? [] : List<Timestamp>.from(json["timestamps"]!.map((x) => Timestamp.fromJson(x))),
+        jobId: jobID,
+        expectedDeliveryDate: DateTime.tryParse(json["expectedDeliveryDate"] ?? ""),
+        isCompleted: json["isCompleted"],
+        name: json["name"],
+        startTime: DateTime.tryParse(json["startTime"] ?? ""),
+        progressImagesUrl: json["progressImagesUrl"] == null ? [] : List<String>.from(json["progressImagesUrl"]!.map((x) => x)),
+        timestamps: json["timestamps"] == null ? [] : List<Timestamp>.from(json["timestamps"]!.map((x) => Timestamp.fromJson(x))),
     );
   }
 
   Future<void> addStartTime() async {
-    timestamps.isNotEmpty ? print('addstarttime: ${timestamps.last.endTime}') : print('');
-    if(timestamps.isNotEmpty && timestamps.last.endTime == null){
+    // timestamps.isNotEmpty ? print('addstarttime: ${timestamps.last.endTime}') : print('');
+    if(timestamps.isNotEmpty && timestamps.last.endTime == timestamps.last.startTime){
       print("error");
       throw Exception("Provide end time first");
     }
@@ -48,18 +49,18 @@ class JobData with ChangeNotifier{
     try {
       List<Timestamp> newTimestamp = timestamps;
       newTimestamp.add(Timestamp(endTime: currentTime, startTime: currentTime));
-      await http.put(Uri.parse(url), body: json.encode({
+      await http.patch(Uri.parse(url), body: json.encode({
         'timeStamps': newTimestamp,
       }));
+      timestamps.add(Timestamp(endTime: currentTime, startTime: currentTime));
+      notifyListeners();
     }catch(e){
       rethrow;
     }
-    timestamps.add(Timestamp(endTime: currentTime, startTime: currentTime));
-    notifyListeners();
   }
 
   Future<void> addEndTime() async{
-    if(timestamps.isEmpty || timestamps.last.endTime == timestamps.l){
+    if(timestamps.isEmpty || timestamps.last.endTime != timestamps.last.startTime){
       throw Exception("Provide start time first");
     }
     print("added end time");
@@ -71,11 +72,11 @@ class JobData with ChangeNotifier{
       await http.put(Uri.parse(url), body: json.encode({
         'timeStamps': newTimestamps,
       }));
+      timestamps.last.endTime = currentTime;
+      notifyListeners();
     }catch(e){
       rethrow;
     }
-    timestamps.last.endTime = currentTime;
-    notifyListeners();
   }
 
 }

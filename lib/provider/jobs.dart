@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:rupa_creation/modal/job_data.dart';
 
 import '../utility/app_urls.dart';
-import 'job.dart';
 
 class Jobs with ChangeNotifier{
   List<JobData> _pendingJobs = [];
@@ -24,8 +22,8 @@ class Jobs with ChangeNotifier{
       final List<JobData> loadedPendingJobs = [];
 
       extractedData.forEach((jobID, jobData) {
-        JobData jd = JobData.fromJson(jobData);
-        loadedPendingJobs.add(JobData(jobId: jobID, name: jd.name, startTime: jd.startTime, expectedDeliveryDate: jd.expectedDeliveryDate, progressImagesUrl: jd.progressImagesUrl, timestamps: jd.timestamps));
+        JobData jd = JobData.fromJson(jobData, jobID);
+        loadedPendingJobs.add(JobData(jobId: jobID, name: jd.name, startTime: jd.startTime, expectedDeliveryDate: jd.expectedDeliveryDate, progressImagesUrl: jd.progressImagesUrl, timestamps: jd.timestamps, isCompleted: false));
       });
       for(int i=0; i< loadedPendingJobs.length; i++){
         print('${loadedPendingJobs[i].name}: ${loadedPendingJobs[i].timestamps}');
@@ -37,18 +35,18 @@ class Jobs with ChangeNotifier{
     }
   }
 
-  Future<void> addJob(String name, String endTime) async {
+  Future<void> addJob(String name, DateTime? startTime, DateTime? endTime) async {
     const url = '${AppUrl.pendingProducts}.json';
     try {
       final response = await http.post(Uri.parse(url), body: json.encode({
         'name': name,
         'startTime': DateTime.now().toString(),
-        'expectedDeliveryDate': endTime,
+        'expectedDeliveryDate': endTime.toString(),
         'progressImagesUrl': [],
         'isCompleted': false,
         'timeStamps': []
       }));
-    Job newJob = Job(jobID: json.decode(response.body)['name'], name: name, expectedDeliveryDate: endTime);
+    JobData newJob = JobData(jobId: json.decode(response.body)['name'], name: name, expectedDeliveryDate: endTime, isCompleted: false, startTime: startTime);
     _pendingJobs.add(newJob);
     notifyListeners();
     }catch(e){

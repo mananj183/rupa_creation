@@ -12,11 +12,20 @@ class AddJobPage extends StatefulWidget {
 
 class _AddJobPageState extends State<AddJobPage> {
   TextEditingController jobNameController = TextEditingController();
-  TextEditingController startDateController = TextEditingController(
-      text: DateFormat("dd-MM-yyyy").format(DateTime.now()).toString());
+
+  TextEditingController startDateController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
   DateTime? endDatePicked;
   var _isloading = false;
+  DateTime? startTime;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    startTime = DateTime.now();
+    startDateController = TextEditingController(
+        text: DateFormat("dd-MM-yyyy").format(startTime!).toString());
+  }
   @override
   Widget build(BuildContext context) {
     final jobs = Provider.of<Jobs>(context);
@@ -85,7 +94,7 @@ class _AddJobPageState extends State<AddJobPage> {
             });
             try {
               await jobs.addJob(
-                  jobNameController.value.text, endDatePicked.toString());
+                  jobNameController.value.text, startTime, endDatePicked);
             }catch(e){
               await showDialog(context: context, builder: (ctx) => AlertDialog(
                 title: const Text('Error Occurred'),

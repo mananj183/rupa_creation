@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rupa_creation/modal/job_data.dart';
 import 'package:rupa_creation/provider/jobs.dart';
 
 import '../provider/job.dart';
@@ -25,20 +26,20 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     );
     final loadedJob = loadedJobs.findById(jobId);
     print(loadedJob.timestamps);
-    List<TableRow> createTimeStampTable(List<Map<String, String>> items) {
+    List<TableRow> createTimeStampTable(List<Timestamp> items) {
       List<TableRow> itemProperties = [];
       itemProperties.add(const TableRow(children: [
         TableCell(child: Center(child: Text("Start Time")),),
         TableCell(child: Center(child: Text("End Time")))
       ]));
       for (int i = 0; i < items.length; ++i) {
-        DateTime startTime = DateTime.parse(items[i]["startTime"]!);
-        DateTime endTime = DateTime.parse(items[i]["endTime"]!);
+        DateTime? startTime = items[i].startTime;
+        DateTime? endTime = items[i].endTime;
         itemProperties.add(TableRow(
 
             children: [
-          TableCell(child: Center(child: Text("${startTime.hour}:${startTime.minute}"))),
-          TableCell(child: Center(child: Text("${endTime.hour}:${endTime.minute}"))),
+          TableCell(child: Center(child: Text("${startTime!.hour}:${startTime.minute}"))),
+          TableCell(child: Center(child: Text("${endTime!.hour}:${endTime.minute}"))),
         ]));
       }
       return itemProperties;
@@ -147,10 +148,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                 ),
             //   ],
             // ),
-            ChangeNotifierProvider<Job>.value(
+            ChangeNotifierProvider<JobData>.value(
               value: loadedJob,
               builder: (context, _) {
-                final job = context.watch<Job>();
+                final job = context.watch<JobData>();
                 return Table(
                   border: TableBorder.all(color: Colors.blue),
                   children: createTimeStampTable(job.timestamps),
@@ -158,7 +159,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
               }
             ),
             TextButton(onPressed: (){
-              loadedJob.toggleIsCompleted();
+              // loadedJob.toggleIsCompleted();
               loadedJobs.completeJob(loadedJob);
               Navigator.of(context).pop();
 

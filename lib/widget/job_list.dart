@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rupa_creation/modal/job_data.dart';
 import 'package:rupa_creation/provider/jobs.dart';
 import 'package:rupa_creation/widget/job_overview.dart';
 
@@ -32,7 +33,7 @@ class _JobListState extends State<JobList> {
   }
   @override
   Widget build(BuildContext context) {
-    List<Job> loadedProducts = Provider.of<Jobs>(context).pendingJobs;
+    List<JobData> loadedProducts = Provider.of<Jobs>(context).pendingJobs;
     for(int i =0; i<loadedProducts.length; i++){
       print(loadedProducts[i].timestamps);
     }
