@@ -23,7 +23,6 @@ class JobData with ChangeNotifier{
   List<Timestamp> timestamps;
 
   factory JobData.fromJson(Map<String, dynamic> json, String jobID){
-    print(json);
     return JobData(
         jobId: jobID,
         expectedDeliveryDate: DateTime.tryParse(json["expectedDeliveryDate"] ?? ""),

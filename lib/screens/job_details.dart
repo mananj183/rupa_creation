@@ -1,7 +1,14 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rupa_creation/provider/job_data.dart';
 import 'package:rupa_creation/provider/jobs.dart';
+import 'package:path/path.dart';
+
+import '../firebase/firebase_api.dart';
 
 class JobDetailsScreen extends StatefulWidget {
   const JobDetailsScreen({Key? key}) : super(key: key);
@@ -13,6 +20,8 @@ class JobDetailsScreen extends StatefulWidget {
 
 class _JobDetailsScreenState extends State<JobDetailsScreen> {
   var _isLoading = false;
+  File? file;
+  UploadTask? task;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +30,6 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       context,
     );
     final loadedJob = loadedJobs.findById(jobId);
-    print(loadedJob.timestamps);
     List<TableRow> createTimeStampTable(List<Timestamp> items) {
       List<TableRow> itemProperties = [];
       itemProperties.add(const TableRow(children: [
@@ -159,10 +167,56 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
               loadedJobs.completeJob(loadedJob);
               Navigator.of(context).pop();
 
-            }, child: Text('mark completed'))
+            }, child: const Text('mark completed'))
           ],
         ),
       ),
+      floatingActionButton: IconButton(onPressed: ()async{
+        try {
+          setState(() {
+            _isLoading = true;
+          });
+          await selectAndUploadFile(jobId);
+        }catch(e){
+          await showDialog(context: context, builder: (ctx) => AlertDialog(
+            title: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+                child: Container(
+                  color: Colors.green,
+                  padding: const EdgeInsets.all(14),
+                  child: const Text("Okay"),
+                ),
+              ),
+            ],
+          ),
+          );
+        }finally{
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }, icon: const Icon(Icons.camera_alt)),
     );
+  }
+  Future selectAndUploadFile(String jobId) async{
+    final result = await FilePicker.platform.pickFiles(allowMultiple: false);
+    if (result == null) return;
+    final path = result.files.single.path!;
+    setState(() => file = File(path));
+    final fileName = basename(file!.path);
+    final destination = '$jobId/$fileName';
+
+    task = FirebaseApi.uploadFile(destination, file!);
+    setState(() {});
+
+    if (task == null) return;
+
+    final snapshot = await task!.whenComplete(() {});
+    final urlDownload = await snapshot.ref.getDownloadURL();
+    print(urlDownload);
   }
 }
