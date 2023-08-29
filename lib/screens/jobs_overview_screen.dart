@@ -12,14 +12,17 @@ class JobOverviewScreen extends StatelessWidget {
         title: const Text("Pending Orders"),
       ),
       body: JobList(),
-      floatingActionButton: IconButton(
-        icon: Icon(Icons.add),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (ctx) => AddJobPage(),
-          );
-        },
+      floatingActionButton: CircleAvatar(
+        radius: 30,
+        child: IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (ctx) => AddJobPage(),
+            );
+          },
+        ),
       ),
     );
   }

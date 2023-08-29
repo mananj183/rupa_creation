@@ -79,6 +79,25 @@ class JobData with ChangeNotifier{
     }
   }
 
+  Future<void> addProgressImage(String imageUrl) async{
+    final url = '${AppUrl.pendingJobs}/$jobId.json';
+    try{
+      List<String> newProgressImages = List.from(progressImagesUrl);
+      newProgressImages.add(imageUrl);
+      await http.put(Uri.parse(url), body: json.encode({
+        'expectedDeliveryDate': expectedDeliveryDate.toString(),
+        'name': name,
+        "startTime": startTime.toString(),
+        "progressImagesUrl": newProgressImages,
+        "timestamps": timestamps,
+      }));
+      progressImagesUrl.add(imageUrl);
+      notifyListeners();
+    }catch(e){
+      rethrow;
+    }
+  }
+
 }
 
 class Timestamp {

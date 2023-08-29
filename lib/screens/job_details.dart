@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rupa_creation/provider/job_data.dart';
 import 'package:rupa_creation/provider/jobs.dart';
@@ -33,81 +34,76 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     List<TableRow> createTimeStampTable(List<Timestamp> items) {
       List<TableRow> itemProperties = [];
       itemProperties.add(const TableRow(children: [
-        TableCell(child: Center(child: Text("Start Time")),),
+        TableCell(
+          child: Center(child: Text("Start Time")),
+        ),
         TableCell(child: Center(child: Text("End Time")))
       ]));
       for (int i = 0; i < items.length; ++i) {
         DateTime? startTime = items[i].startTime;
         DateTime? endTime = items[i].endTime;
-        itemProperties.add(TableRow(
-
-            children: [
-          TableCell(child: Center(child: Text("${startTime!.hour}:${startTime.minute}"))),
-          TableCell(child: Center(child: Text("${endTime!.hour}:${endTime.minute}"))),
+        itemProperties.add(TableRow(children: [
+          TableCell(
+              child: Center(
+                  child: Text("${startTime!.hour}:${startTime.minute}"))),
+          TableCell(
+              child: Center(child: Text("${endTime!.hour}:${endTime.minute}"))),
         ]));
       }
       return itemProperties;
     }
 
-
     return Scaffold(
       appBar: AppBar(
         title: Text(loadedJob.name),
       ),
-      body: _isLoading ? Center(child: const CircularProgressIndicator(),) : Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                    Container(
-                      margin: EdgeInsets.all(5),
-                      child: TextButton(
-                          style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 50),
-                              backgroundColor: Colors.blue,
-                              shape: const StadiumBorder()),
-                          onPressed: () async {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                            try {
-                              await loadedJob.addStartTime();
-                            }catch (e) {
-                              await showDialog(context: context, builder: (ctx) => AlertDialog(
-                                  title: Text(e.toString()),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(ctx).pop();
-
-                                      },
-                                      child: Container(
-                                        color: Colors.green,
-                                        padding: const EdgeInsets.all(14),
-                                        child: const Text("Okay"),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }finally{
+      body: _isLoading
+          ? Center(
+              child: const CircularProgressIndicator(),
+            )
+          : Container(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.all(5),
+                        child: TextButton(
+                            style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 50),
+                                backgroundColor: Colors.blue,
+                                shape: const StadiumBorder()),
+                            onPressed: () async {
                               setState(() {
-                                _isLoading = false;
+                                _isLoading = true;
                               });
-                            }
-                          },
-                          child: const Text("Start", style: TextStyle(color: Colors.white),)),
-                    ),
-                //   ],
-                // ),
-                const SizedBox(width: 20,),
-                    Container(
-                      margin: EdgeInsets.all(5),
-                      child: TextButton(
+                              try {
+                                await loadedJob.addStartTime();
+                              } catch (e) {
+                                await buildShowDialog(context, e);
+                              } finally {
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                              }
+                            },
+                            child: const Text(
+                              "Start",
+                              style: TextStyle(color: Colors.white),
+                            )),
+                      ),
+                      //   ],
+                      // ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Container(
+                        margin: EdgeInsets.all(5),
+                        child: TextButton(
                           style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                   vertical: 10, horizontal: 50),
@@ -119,94 +115,163 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                             });
                             try {
                               await loadedJob.addEndTime();
-                            }catch (e) {
+                            } catch (e) {
                               print("here");
                               await showDialog(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
-                                    title: Text(e.toString()),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Container(
-                                          color: Colors.green,
-                                          padding: const EdgeInsets.all(14),
-                                          child: const Text("okay"),
-                                        ),
+                                  title: Text(e.toString()),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Container(
+                                        color: Colors.green,
+                                        padding: const EdgeInsets.all(14),
+                                        child: const Text("okay"),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
+                                ),
                               );
-                            }
-                            finally{
+                            } finally {
                               setState(() {
                                 _isLoading = false;
                               });
                             }
                           },
-                          child: const Text("Stop", style: TextStyle(color: Colors.white),),),
-                    ),
-                  ],
-                ),
-            //   ],
-            // ),
-            ChangeNotifierProvider<JobData>.value(
-              value: loadedJob,
-              builder: (context, _) {
-                final job = context.watch<JobData>();
-                return Table(
-                  border: TableBorder.all(color: Colors.blue),
-                  children: createTimeStampTable(job.timestamps),
-                );
-              }
-            ),
-            TextButton(onPressed: (){
-              // loadedJob.toggleIsCompleted();
-              loadedJobs.completeJob(loadedJob);
-              Navigator.of(context).pop();
-
-            }, child: const Text('mark completed'))
-          ],
-        ),
-      ),
-      floatingActionButton: IconButton(onPressed: ()async{
-        try {
-          setState(() {
-            _isLoading = true;
-          });
-          await selectAndUploadFile(jobId);
-        }catch(e){
-          await showDialog(context: context, builder: (ctx) => AlertDialog(
-            title: Text(e.toString()),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                },
-                child: Container(
-                  color: Colors.green,
-                  padding: const EdgeInsets.all(14),
-                  child: const Text("Okay"),
-                ),
+                          child: const Text(
+                            "Stop",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  //   ],
+                  // ),
+                  ChangeNotifierProvider<JobData>.value(
+                      value: loadedJob,
+                      builder: (context, _) {
+                        final job = context.watch<JobData>();
+                        return Table(
+                          border: TableBorder.all(color: Colors.blue),
+                          children: createTimeStampTable(job.timestamps),
+                        );
+                      }),
+                  const SizedBox(
+                      height: 30,
+                      child: Divider(
+                        color: Colors.black38,
+                      )),
+                  const Text("Progress Images",
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                  Expanded(
+                    child: GridView.builder(
+                      padding: EdgeInsets.only(top: 10),
+                        itemCount: loadedJob.progressImagesUrl.length + 1,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4, // no. of columns
+                                childAspectRatio: 1.5 / 2, // length/width ratio
+                                crossAxisSpacing: 5, // space btw columns
+                                mainAxisSpacing: 5 // space btw rows
+                                ),
+                        itemBuilder: (_, i) =>
+                            ChangeNotifierProvider<JobData>.value(
+                              value: loadedJob,
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: i < loadedJob.progressImagesUrl.length
+                                      ? GridTile(
+                                            child: Card(
+                                              child: CachedNetworkImage(
+                                                fit: BoxFit.fill,
+                                                imageUrl:
+                                                    loadedJob.progressImagesUrl[i],
+                                                progressIndicatorBuilder: (context,
+                                                        url, downloadProgress) =>
+                                                    Center(
+                                                      child: CircularProgressIndicator(
+                                                          value: downloadProgress
+                                                              .progress),
+                                                    ),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        const Icon(Icons.error),
+                                              ),
+                                            ),
+                                          // child: Image.network(loadedJob.progressImagesUrl[i]),
+                                        )
+                                      : GridTile(
+                                            child: Card(
+                                            child: Center(
+                                              child: IconButton(
+                                                icon: const Icon(Icons.add_a_photo),
+                                                onPressed: () async {
+                                                  try {
+                                                    setState(() {
+                                                      _isLoading = true;
+                                                    });
+                                                    await selectAndUploadFile(jobId).then((imageUrl) async {
+                                                      if (imageUrl == null) return;
+                                                      print(imageUrl);
+                                                      try {
+                                                        await loadedJob.addProgressImage(imageUrl);
+                                                      } catch (e) {
+                                                        await buildShowDialog(context, e);
+                                                      }
+                                                    });
+                                                  } catch (e) {
+                                                    await buildShowDialog(context, e);
+                                                  } finally {
+                                                    setState(() {
+                                                      _isLoading = false;
+                                                    });
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          )
+                                  )),
+                            )),
+                  ),
+                ],
               ),
-            ],
-          ),
-          );
-        }finally{
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }, icon: const Icon(Icons.camera_alt)),
+            ),
     );
   }
-  Future selectAndUploadFile(String jobId) async{
-    final result = await FilePicker.platform.pickFiles(allowMultiple: false);
-    if (result == null) return;
-    final path = result.files.single.path!;
-    setState(() => file = File(path));
+
+  Future<dynamic> buildShowDialog(BuildContext context, Object e) {
+    return showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(e.toString()),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: Container(
+              color: Colors.green,
+              padding: const EdgeInsets.all(14),
+              child: const Text("Okay"),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<dynamic> selectAndUploadFile(String jobId) async {
+    final ImagePicker picker = ImagePicker();
+
+    XFile? imageFile = await picker.pickImage(source: ImageSource.camera);
+    if (imageFile == null) return;
+    setState(() => file = File(imageFile.path));
     final fileName = basename(file!.path);
     final destination = '$jobId/$fileName';
 
@@ -217,6 +282,6 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
     final snapshot = await task!.whenComplete(() {});
     final urlDownload = await snapshot.ref.getDownloadURL();
-    print(urlDownload);
+    return urlDownload;
   }
 }
