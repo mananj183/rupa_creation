@@ -7,23 +7,20 @@ import 'package:rupa_creation/provider/job_data.dart';
 import '../utility/app_urls.dart';
 
 class Jobs with ChangeNotifier {
-  List<JobData> _items = [];
-  final List<JobData> _completedJobs = [];
+  List<JobData> _pendingJobs = [];
+  List<JobData> _completedJobs = [];
   final String authToken;
 
-  Jobs(
-      {required this.authToken,
-      List<JobData>? items})
-      : _items = items ?? [];
+  Jobs({required this.authToken, List<JobData>? pendingJobs}) : _pendingJobs = pendingJobs ?? [];
 
   // JobPerformer(this.name, this.userId);
 
-  List<JobData> get items {
-    return [..._items];
+  List<JobData> get pendingJobs {
+    return [..._pendingJobs];
   }
 
   List<JobData> get completedJobs {
-    return _items.where((element) => element.isComplete).toList();
+    return _completedJobs;
   }
 
   Future<void> fetchAndSetProducts(String userId) async {
@@ -35,22 +32,28 @@ class Jobs with ChangeNotifier {
       }
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
 
-      url = '${AppUrl.baseUrl}/user-completed-jobs//$userId.json?auth=$authToken';
+      url =
+          '${AppUrl.baseUrl}/user-completed-jobs//$userId.json?auth=$authToken';
       final completedResponse = await http.get(Uri.parse(url));
       final completeData = json.decode(completedResponse.body);
       final List<JobData> loadedPendingJobs = [];
+      final List<JobData> loadedCompletedJobs = [];
       extractedData.forEach((jobID, jobData) {
         JobData jd = JobData.fromJson(jobData, jobID);
-        loadedPendingJobs.add(JobData(
+        var jobDataObject = JobData(
             jobId: jobID,
             title: jd.title,
             startTime: jd.startTime,
             expectedDeliveryDate: jd.expectedDeliveryDate,
             isComplete: completeData == null ? false : completeData[jobID],
             progressImagesUrl: jd.progressImagesUrl,
-            timestamps: jd.timestamps));
+            timestamps: jd.timestamps);
+        completeData == null || completeData[jobID] == false
+            ? loadedPendingJobs.add(jobDataObject)
+            : loadedCompletedJobs.add(jobDataObject);
       });
-      _items = loadedPendingJobs;
+      _pendingJobs = loadedPendingJobs;
+      _completedJobs = loadedCompletedJobs;
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -74,7 +77,7 @@ class Jobs with ChangeNotifier {
           title: name,
           expectedDeliveryDate: endTime,
           startTime: startTime);
-      _items.add(newJob);
+      _pendingJobs.add(newJob);
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -82,6 +85,6 @@ class Jobs with ChangeNotifier {
   }
 
   JobData findById(String id) {
-    return _items.firstWhere((element) => element.jobId == id);
+    return _pendingJobs.firstWhere((element) => element.jobId == id);
   }
 }

@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<Auth, Jobs?>(
           create: (ctx) => null,
           update: (ctx, auth, previousJobs) =>
-              Jobs(authToken: auth.token!, items: previousJobs == null ? [] : previousJobs.items),
+              Jobs(authToken: auth.token!, items: previousJobs == null ? [] : previousJobs.pendingJobs),
         ),
       ],
       child: Consumer<Auth>(

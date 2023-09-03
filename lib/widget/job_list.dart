@@ -41,7 +41,7 @@ class _JobListState extends State<JobList> {
 
   @override
   Widget build(BuildContext context) {
-    List<JobData> loadedProducts = Provider.of<Jobs>(context).items;
+    List<JobData> loadedProducts = Provider.of<Jobs>(context).pendingJobs;
     return _isLoading ? const Center(child: CircularProgressIndicator(),) : RefreshIndicator(
       onRefresh: () => _refreshJobs(context),
       child: Padding(
