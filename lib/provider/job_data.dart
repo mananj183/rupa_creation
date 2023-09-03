@@ -6,31 +6,60 @@ import '../utility/app_urls.dart';
 import 'package:http/http.dart' as http;
 
 class JobData with ChangeNotifier{
+
+  final String jobId;
+  final String title;
+  final DateTime? startTime;
+  final DateTime? expectedDeliveryDate;
+  bool isComplete;
+  List<String> progressImagesUrl;
+  List<Timestamp> timestamps;
+
   JobData({
     required this.jobId,
     required this.expectedDeliveryDate,
-    required this.name,
+    required this.title,
     required this.startTime,
+    this.isComplete = false,
     List<String>? progressImagesUrl,
     List<Timestamp>? timestamps,
   }):  timestamps = timestamps ?? [], progressImagesUrl = progressImagesUrl ?? [];
-
-  final String jobId;
-  final String name;
-  final DateTime? startTime;
-  final DateTime? expectedDeliveryDate;
-  List<String> progressImagesUrl;
-  List<Timestamp> timestamps;
 
   factory JobData.fromJson(Map<String, dynamic> json, String jobID){
     return JobData(
         jobId: jobID,
         expectedDeliveryDate: DateTime.tryParse(json["expectedDeliveryDate"] ?? ""),
-        name: json["name"],
+        title: json["name"],
         startTime: DateTime.tryParse(json["startTime"] ?? ""),
         progressImagesUrl: json["progressImagesUrl"] == null ? [] : List<String>.from(json["progressImagesUrl"]!.map((x) => x)),
         timestamps: json["timestamps"] == null ? [] : List<Timestamp>.from(json["timestamps"]!.map((x) => Timestamp.fromJson(x))),
     );
+  }
+
+  void _markComplete(bool newValue){
+    isComplete = newValue;
+    notifyListeners();
+  }
+
+  Future<void> toggleCompleteStatus(String userId, String token) async {
+    final oldStatus = isComplete;
+    isComplete = !isComplete;
+    notifyListeners();
+    final url =
+        '${AppUrl.baseUrl}/user-completed-jobs//$userId/$jobId.json?auth=$token';
+    try {
+      final response = await http.put(
+        Uri.parse(url),
+        body: json.encode(
+          isComplete,
+        ),
+      );
+      if (response.statusCode >= 400) {
+        _markComplete(oldStatus);
+      }
+    } catch (error) {
+      _markComplete(oldStatus);
+    }
   }
 
   Future<void> addStartTime() async {
@@ -44,8 +73,9 @@ class JobData with ChangeNotifier{
       newTimestamp.add(Timestamp(endTime: currentTime, startTime: currentTime));
       await http.put(Uri.parse(url), body: json.encode({
         'expectedDeliveryDate': expectedDeliveryDate.toString(),
-        'name': name,
+        'name': title,
         "startTime": startTime.toString(),
+        "isCompleted": isComplete,
         "progressImagesUrl": progressImagesUrl,
         "timestamps": newTimestamp,
       }));
@@ -67,8 +97,9 @@ class JobData with ChangeNotifier{
       newTimestamp.last.endTime = currentTime;
       await http.put(Uri.parse(url), body: json.encode({
         'expectedDeliveryDate': expectedDeliveryDate.toString(),
-        'name': name,
+        'name': title,
         "startTime": startTime.toString(),
+        "isCompleted": isComplete,
         "progressImagesUrl": progressImagesUrl,
         "timestamps": newTimestamp,
       }));
@@ -86,8 +117,9 @@ class JobData with ChangeNotifier{
       newProgressImages.add(imageUrl);
       await http.put(Uri.parse(url), body: json.encode({
         'expectedDeliveryDate': expectedDeliveryDate.toString(),
-        'name': name,
+        'name': title,
         "startTime": startTime.toString(),
+        "isCompleted": isComplete,
         "progressImagesUrl": newProgressImages,
         "timestamps": timestamps,
       }));

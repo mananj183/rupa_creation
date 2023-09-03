@@ -35,14 +35,24 @@ class _JobListState extends State<JobList> {
       }
     });
   }
+  Future<void> _refreshJobs(BuildContext context) async{
+    await Provider.of<Jobs>(context, listen: false).fetchAndSetProducts();
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<JobData> loadedProducts = Provider.of<Jobs>(context).pendingJobs;
-    return _isLoading ? const Center(child: CircularProgressIndicator(),) : ListView.builder(
-      itemCount: loadedProducts.length,
-      itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
-        value: loadedProducts[i],
-        child: const JobOverview(),
+    List<JobData> loadedProducts = Provider.of<Jobs>(context).items;
+    return _isLoading ? const Center(child: CircularProgressIndicator(),) : RefreshIndicator(
+      onRefresh: () => _refreshJobs(context),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView.builder(
+          itemCount: loadedProducts.length,
+          itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
+            value: loadedProducts[i],
+            child: const JobOverview(),
+          ),
+        ),
       ),
     );
   }

@@ -67,7 +67,7 @@ class JobOverview extends StatelessWidget {
           //     const Icon(Icons.error),
           //   ),
           ),
-          title: Text(job.name, textScaleFactor:  1.2,),
+          title: Text(job.title, textScaleFactor:  1.2,),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

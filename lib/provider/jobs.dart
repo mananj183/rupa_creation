@@ -6,69 +6,82 @@ import 'package:rupa_creation/provider/job_data.dart';
 
 import '../utility/app_urls.dart';
 
-class Jobs with ChangeNotifier{
-  List<JobData> _pendingJobs = [];
+class Jobs with ChangeNotifier {
+  List<JobData> _items = [];
   final List<JobData> _completedJobs = [];
+  final String authToken;
 
-  List<JobData> get pendingJobs{
-    return [..._pendingJobs];
+  Jobs(
+      {required this.authToken,
+      List<JobData>? items})
+      : _items = items ?? [];
+
+  // JobPerformer(this.name, this.userId);
+
+  List<JobData> get items {
+    return [..._items];
   }
 
-  Future<void> fetchAndSetProducts()async {
-    const url = '${AppUrl.pendingJobs}.json';
-    try{
+  List<JobData> get completedJobs {
+    return _items.where((element) => element.isComplete).toList();
+  }
+
+  Future<void> fetchAndSetProducts(String userId) async {
+    var url = '${AppUrl.pendingJobs}.json?auth=$authToken';
+    try {
       final response = await http.get(Uri.parse(url));
-      if(response.body == 'null'){
+      if (response.body == 'null') {
         return;
       }
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
-      final List<JobData> loadedPendingJobs = [];
 
+      url = '${AppUrl.baseUrl}/user-completed-jobs//$userId.json?auth=$authToken';
+      final completedResponse = await http.get(Uri.parse(url));
+      final completeData = json.decode(completedResponse.body);
+      final List<JobData> loadedPendingJobs = [];
       extractedData.forEach((jobID, jobData) {
         JobData jd = JobData.fromJson(jobData, jobID);
-        loadedPendingJobs.add(JobData(jobId: jobID, name: jd.name, startTime: jd.startTime, expectedDeliveryDate: jd.expectedDeliveryDate, progressImagesUrl: jd.progressImagesUrl, timestamps: jd.timestamps));
+        loadedPendingJobs.add(JobData(
+            jobId: jobID,
+            title: jd.title,
+            startTime: jd.startTime,
+            expectedDeliveryDate: jd.expectedDeliveryDate,
+            isComplete: completeData == null ? false : completeData[jobID],
+            progressImagesUrl: jd.progressImagesUrl,
+            timestamps: jd.timestamps));
       });
-      // for(int i=0; i< loadedPendingJobs.length; i++){
-      //   print('${loadedPendingJobs[i].name}: ${loadedPendingJobs[i].timestamps}');
-      // }
-      _pendingJobs = loadedPendingJobs;
+      _items = loadedPendingJobs;
       notifyListeners();
-    }catch(e){
+    } catch (e) {
       rethrow;
     }
   }
 
   Future<void> addJob(String name, DateTime? endTime) async {
-    const url = '${AppUrl.pendingJobs}.json';
+    final url = '${AppUrl.pendingJobs}.json?auth=$authToken';
     DateTime startTime = DateTime.now();
     try {
-      final response = await http.post(Uri.parse(url), body: json.encode({
-        'name': name,
-        'startTime': startTime.toString(),
-        'expectedDeliveryDate': endTime.toString(),
-        'progressImagesUrl': [],
-        'isCompleted': false,
-        'timeStamps': []
-      }));
-    JobData newJob = JobData(jobId: json.decode(response.body)['name'], name: name, expectedDeliveryDate: endTime, startTime: startTime);
-    _pendingJobs.add(newJob);
-    notifyListeners();
-    }catch(e){
+      final response = await http.post(Uri.parse(url),
+          body: json.encode({
+            'name': name,
+            'startTime': startTime.toString(),
+            'expectedDeliveryDate': endTime.toString(),
+            'progressImagesUrl': [],
+            'timeStamps': []
+          }));
+      JobData newJob = JobData(
+          jobId: json.decode(response.body)['name'],
+          title: name,
+          expectedDeliveryDate: endTime,
+          startTime: startTime);
+      _items.add(newJob);
+      notifyListeners();
+    } catch (e) {
       rethrow;
     }
   }
 
-  JobData findById(String id){
-    return _pendingJobs.firstWhere((element) => element.jobId == id);
-  }
-
-  void completeJob(JobData job){
-    _completedJobs.add(job);
-    _pendingJobs.remove(job);
-    notifyListeners();
-  }
-
-  List<JobData> get completedJobs{
-    return [..._completedJobs];
+  JobData findById(String id) {
+    return _items.firstWhere((element) => element.jobId == id);
   }
 }

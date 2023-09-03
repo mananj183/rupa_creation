@@ -55,7 +55,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(loadedJob.name),
+        title: Text(loadedJob.title),
       ),
       body: _isLoading
           ? Center(
