@@ -10,7 +10,7 @@ class JobData with ChangeNotifier{
   final String jobId;
   final String title;
   final DateTime? startTime;
-  final DateTime? expectedDeliveryDate;
+  DateTime? expectedDeliveryDate;
   bool isComplete;
   List<String> progressImagesUrl;
   List<Timestamp> timestamps;
@@ -36,42 +36,17 @@ class JobData with ChangeNotifier{
     );
   }
 
-  void _markComplete(bool newValue){
-    isComplete = newValue;
-    notifyListeners();
-  }
-
-  Future<void> toggleCompleteStatus(String userId, String token) async {
-    final oldStatus = isComplete;
-    isComplete = !isComplete;
-    notifyListeners();
-    final url =
-        '${AppUrl.baseUrl}/user-completed-jobs//$userId/$jobId.json?auth=$token';
-    try {
-      final response = await http.put(
-        Uri.parse(url),
-        body: json.encode(
-          isComplete,
-        ),
-      );
-      if (response.statusCode >= 400) {
-        _markComplete(oldStatus);
-      }
-    } catch (error) {
-      _markComplete(oldStatus);
-    }
-  }
-
-  Future<void> addStartTime() async {
+  Future<void> addStartTime(String userId ,String token) async {
     if(timestamps.isNotEmpty && timestamps.last.endTime == timestamps.last.startTime){
       throw Exception("Provide end time first");
     }
-    final url = '${AppUrl.pendingJobs}/$jobId.json';
+    final url = '${AppUrl.jobs}/$jobId.json?auth=$token';
     DateTime currentTime = DateTime.now();
     try {
       List<Timestamp> newTimestamp = List.from(timestamps);
       newTimestamp.add(Timestamp(endTime: currentTime, startTime: currentTime));
       await http.put(Uri.parse(url), body: json.encode({
+        'creatorId': userId,
         'expectedDeliveryDate': expectedDeliveryDate.toString(),
         'name': title,
         "startTime": startTime.toString(),
@@ -86,16 +61,17 @@ class JobData with ChangeNotifier{
     }
   }
 
-  Future<void> addEndTime() async{
+  Future<void> addEndTime(String userId, String token) async{
     if(timestamps.isEmpty || timestamps.last.endTime != timestamps.last.startTime){
       throw Exception("Provide start time first");
     }
-    final url = '${AppUrl.pendingJobs}/$jobId.json';
+    final url = '${AppUrl.jobs}/$jobId.json?auth=$token';
     DateTime currentTime = DateTime.now();
     try {
       List<Timestamp> newTimestamp = List.from(timestamps);
       newTimestamp.last.endTime = currentTime;
       await http.put(Uri.parse(url), body: json.encode({
+        'creatorId': userId,
         'expectedDeliveryDate': expectedDeliveryDate.toString(),
         'name': title,
         "startTime": startTime.toString(),
@@ -110,12 +86,13 @@ class JobData with ChangeNotifier{
     }
   }
 
-  Future<void> addProgressImage(String imageUrl) async{
-    final url = '${AppUrl.pendingJobs}/$jobId.json';
+  Future<void> addProgressImage(String imageUrl, String userId, String token) async{
+    final url = '${AppUrl.jobs}/$jobId.json?auth=$token';
     try{
       List<String> newProgressImages = List.from(progressImagesUrl);
       newProgressImages.add(imageUrl);
       await http.put(Uri.parse(url), body: json.encode({
+        'creatorId': userId,
         'expectedDeliveryDate': expectedDeliveryDate.toString(),
         'name': title,
         "startTime": startTime.toString(),
@@ -146,5 +123,11 @@ class Timestamp {
       endTime: DateTime.tryParse(json["endTime"] ?? ""),
       startTime: DateTime.tryParse(json["startTime"] ?? ""),
     );
+  }
+  Map<String, dynamic> toJson() {
+    final Map<String, String> data = <String, String>{};
+    data['endTime'] = endTime!.toIso8601String();
+    data['startTime'] = startTime!.toIso8601String();
+    return data;
   }
 }

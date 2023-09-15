@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../modal/http_exception.dart';
-
 
 class Auth with ChangeNotifier {
   String? _userEmailId;
@@ -32,7 +33,7 @@ class Auth with ChangeNotifier {
     return _userId;
   }
 
-  String? get userEmailId{
+  String? get userEmailId {
     return _userEmailId;
   }
 
@@ -41,7 +42,7 @@ class Auth with ChangeNotifier {
     final url =
         'https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=AIzaSyAUS5-aw8kl_ZfTaoAahT7lFdkYN-zTE7c';
     try {
-      final response = await http.post(
+      var response = await http.post(
         Uri.parse(url),
         body: json.encode(
           {
@@ -82,8 +83,27 @@ class Auth with ChangeNotifier {
     }
   }
 
-  Future<void> signup(String email) async {
-    return _authenticate(email, 'signUp');
+  Future<void> signup(String email, String name) async {
+    try{
+      FirebaseAuth auth = FirebaseAuth.instance;
+      UserCredential userCredential =
+      await auth.createUserWithEmailAndPassword(
+          email: '$email@rupacreation.com', password: 'Chiru@69');
+      if (userCredential.user != null) {
+        DatabaseReference userRef = FirebaseDatabase.instance.ref().child( 'users');
+        String uid = userCredential.user!.uid;
+        // int dt = DateTime.now().millisecondsSinceEpoch;
+        await userRef.child(uid).set({
+          'fullName': name,
+          'email': email,
+          // 'date': dt,
+        });
+        await login(email);
+      }
+
+    }catch(e){
+      rethrow;
+    }
   }
 
   Future<void> login(String email) async {
@@ -95,9 +115,11 @@ class Auth with ChangeNotifier {
     if (!prefs.containsKey('userData')) {
       return false;
     }
-    final extractedUserData = json.decode(prefs.getString('userData')!) as Map<String, Object>;
-    final expiryDate = DateTime.parse(extractedUserData['expiryDate'].toString());
 
+    final extractedUserData =
+        json.decode(prefs.getString('userData')!);
+    final expiryDate =
+        DateTime.parse(extractedUserData['expiryDate'].toString());
     if (expiryDate.isBefore(DateTime.now())) {
       return false;
     }

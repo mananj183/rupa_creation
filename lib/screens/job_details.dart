@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:rupa_creation/provider/auth.dart';
 import 'package:rupa_creation/provider/job_data.dart';
 import 'package:rupa_creation/provider/jobs.dart';
 import 'package:path/path.dart';
@@ -26,11 +27,14 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final jobId = ModalRoute.of(context)?.settings.arguments as String;
+    final arguments = ModalRoute.of(context)!.settings.arguments as ScreenArguments;
+    final jobId = arguments.jobId;
+    bool showCompletedJobDetails = arguments.showCompletedJobDetails;
     final loadedJobs = Provider.of<Jobs>(
       context,
     );
-    final loadedJob = loadedJobs.findById(jobId);
+    final loggedInUser = Provider.of<Auth>(context, listen: false);
+    final loadedJob = loadedJobs.findById(jobId, showCompletedJobDetails);
     List<TableRow> createTimeStampTable(List<Timestamp> items) {
       List<TableRow> itemProperties = [];
       itemProperties.add(const TableRow(children: [
@@ -40,14 +44,31 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
         TableCell(child: Center(child: Text("End Time")))
       ]));
       for (int i = 0; i < items.length; ++i) {
-        DateTime? startTime = items[i].startTime;
-        DateTime? endTime = items[i].endTime;
+        DateTime startTime = items[i].startTime!;
+        DateTime endTime = items[i].endTime!;
         itemProperties.add(TableRow(children: [
           TableCell(
               child: Center(
-                  child: Text("${startTime!.hour}:${startTime.minute}"))),
+                  child: Text(startTime.hour.toString().length == 1 &&
+                          startTime.minute.toString().length == 1
+                      ? "${startTime.day}/${startTime.month}/${startTime.year} - 0${startTime.hour}:0${startTime.minute}"
+                      : startTime.hour.toString().length == 1
+                          ? "${startTime.day}/${startTime.month}/${startTime.year} - 0${startTime.hour}:${startTime.minute}"
+                          : startTime.minute.toString().length == 1
+                              ? "${startTime.day}/${startTime.month}/${startTime.year} - ${startTime.hour}:0${startTime.minute}"
+                              : "${startTime.day}/${startTime.month}/${startTime.year} - ${startTime.hour}:${startTime.minute}"))),
           TableCell(
-              child: Center(child: Text("${endTime!.hour}:${endTime.minute}"))),
+              child: Center(
+                  child: startTime == endTime
+                      ? null
+                      : Text(endTime.hour.toString().length == 1 &&
+                              endTime.minute.toString().length == 1
+                          ? "${endTime.day}/${endTime.month}/${endTime.year} - 0${endTime.hour}:0${endTime.minute}"
+                          : endTime.hour.toString().length == 1
+                              ? "${endTime.day}/${endTime.month}/${endTime.year} - 0${endTime.hour}:${endTime.minute}"
+                              : endTime.minute.toString().length == 1
+                                  ? "${endTime.day}/${endTime.month}/${endTime.year} - ${endTime.hour}:0${endTime.minute}"
+                                  : "${endTime.day}/${endTime.month}/${endTime.year} - ${endTime.hour}:${endTime.minute}"))),
         ]));
       }
       return itemProperties;
@@ -58,97 +79,109 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
         title: Text(loadedJob.title),
       ),
       body: _isLoading
-          ? Center(
-              child: const CircularProgressIndicator(),
+          ? const Center(
+              child: CircularProgressIndicator(),
             )
           : Container(
               padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        margin: EdgeInsets.all(5),
-                        child: TextButton(
-                            style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 50),
-                                backgroundColor: Colors.blue,
-                                shape: const StadiumBorder()),
-                            onPressed: () async {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                              try {
-                                await loadedJob.addStartTime();
-                              } catch (e) {
-                                await buildShowDialog(context, e);
-                              } finally {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
-                            },
-                            child: const Text(
-                              "Start",
-                              style: TextStyle(color: Colors.white),
-                            )),
-                      ),
-                      //   ],
-                      // ),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      Container(
-                        margin: EdgeInsets.all(5),
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 50),
-                              backgroundColor: Colors.blue,
-                              shape: const StadiumBorder()),
-                          onPressed: () async {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                            try {
-                              await loadedJob.addEndTime();
-                            } catch (e) {
-                              print("here");
-                              await showDialog(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title: Text(e.toString()),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Container(
-                                        color: Colors.green,
-                                        padding: const EdgeInsets.all(14),
-                                        child: const Text("okay"),
+                  showCompletedJobDetails
+                      ? const Text(
+                              'Timestamps',
+                    textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.w700),
+
+
+                            )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.all(5),
+                              child: TextButton(
+                                  style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10, horizontal: 50),
+                                      backgroundColor: Colors.blue,
+                                      shape: const StadiumBorder()),
+                                  onPressed: () async {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    try {
+                                      await loadedJob.addStartTime(
+                                          loggedInUser.userId!,
+                                          loggedInUser.token!);
+                                    } catch (e) {
+                                      await buildShowDialog(context, e);
+                                    } finally {
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                    }
+                                  },
+                                  child: const Text(
+                                    "Start",
+                                    style: TextStyle(color: Colors.white),
+                                  )),
+                            ),
+                            //   ],
+                            // ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            Container(
+                              margin: const EdgeInsets.all(5),
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10, horizontal: 50),
+                                    backgroundColor: Colors.blue,
+                                    shape: const StadiumBorder()),
+                                onPressed: () async {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
+                                  try {
+                                    await loadedJob.addEndTime(
+                                        loggedInUser.userId!,
+                                        loggedInUser.token!);
+                                  } catch (e) {
+                                    await showDialog(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: Text(e.toString()),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Container(
+                                              color: Colors.green,
+                                              padding: const EdgeInsets.all(14),
+                                              child: const Text("okay"),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
+                                    );
+                                  } finally {
+                                    setState(() {
+                                      _isLoading = false;
+                                    });
+                                  }
+                                },
+                                child: const Text(
+                                  "Stop",
+                                  style: TextStyle(color: Colors.white),
                                 ),
-                              );
-                            } finally {
-                              setState(() {
-                                _isLoading = false;
-                              });
-                            }
-                          },
-                          child: const Text(
-                            "Stop",
-                            style: TextStyle(color: Colors.white),
-                          ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                   //   ],
                   // ),
                   ChangeNotifierProvider<JobData>.value(
@@ -171,7 +204,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                   Expanded(
                     child: GridView.builder(
-                      padding: EdgeInsets.only(top: 10),
+                        padding: const EdgeInsets.only(top: 10),
                         itemCount: loadedJob.progressImagesUrl.length + 1,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
@@ -187,56 +220,73 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                   child: i < loadedJob.progressImagesUrl.length
                                       ? GridTile(
-                                            child: Card(
-                                              child: CachedNetworkImage(
-                                                fit: BoxFit.fill,
-                                                imageUrl:
-                                                    loadedJob.progressImagesUrl[i],
-                                                progressIndicatorBuilder: (context,
-                                                        url, downloadProgress) =>
-                                                    Center(
-                                                      child: CircularProgressIndicator(
-                                                          value: downloadProgress
-                                                              .progress),
-                                                    ),
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        const Icon(Icons.error),
+                                          child: Card(
+                                            child: CachedNetworkImage(
+                                              fit: BoxFit.fill,
+                                              imageUrl: loadedJob
+                                                  .progressImagesUrl[i],
+                                              progressIndicatorBuilder:
+                                                  (context, url,
+                                                          downloadProgress) =>
+                                                      Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                        value: downloadProgress
+                                                            .progress),
                                               ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      const Icon(Icons.error),
                                             ),
+                                          ),
                                           // child: Image.network(loadedJob.progressImagesUrl[i]),
                                         )
                                       : GridTile(
-                                            child: Card(
-                                            child: Center(
-                                              child: IconButton(
-                                                icon: const Icon(Icons.add_a_photo),
-                                                onPressed: () async {
+                                          child: Card(
+                                          child: Center(
+                                            child: IconButton(
+                                              icon:
+                                                  const Icon(Icons.add_a_photo),
+                                              onPressed: () async {
+                                                if(!showCompletedJobDetails) {
                                                   try {
                                                     setState(() {
                                                       _isLoading = true;
                                                     });
-                                                    await selectAndUploadFile(jobId).then((imageUrl) async {
-                                                      if (imageUrl == null) return;
-                                                      print(imageUrl);
+                                                    await selectAndUploadFile(
+                                                        loggedInUser
+                                                            .userEmailId!,
+                                                        jobId)
+                                                        .then((imageUrl) async {
+                                                      if (imageUrl == null) {
+                                                        return;
+                                                      }
                                                       try {
-                                                        await loadedJob.addProgressImage(imageUrl);
+                                                        await loadedJob
+                                                            .addProgressImage(
+                                                            imageUrl,
+                                                            loggedInUser
+                                                                .userId!,
+                                                            loggedInUser
+                                                                .token!);
                                                       } catch (e) {
-                                                        await buildShowDialog(context, e);
+                                                        await buildShowDialog(
+                                                            context, e);
                                                       }
                                                     });
                                                   } catch (e) {
-                                                    await buildShowDialog(context, e);
+                                                    await buildShowDialog(
+                                                        context, e);
                                                   } finally {
                                                     setState(() {
                                                       _isLoading = false;
                                                     });
                                                   }
-                                                },
-                                              ),
+                                                }
+                                              },
                                             ),
-                                          )
-                                  )),
+                                          ),
+                                        ))),
                             )),
                   ),
                 ],
@@ -266,14 +316,14 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     );
   }
 
-  Future<dynamic> selectAndUploadFile(String jobId) async {
+  Future<dynamic> selectAndUploadFile(String username, String jobId) async {
     final ImagePicker picker = ImagePicker();
 
     XFile? imageFile = await picker.pickImage(source: ImageSource.camera);
     if (imageFile == null) return;
     setState(() => file = File(imageFile.path));
     final fileName = basename(file!.path);
-    final destination = '$jobId/$fileName';
+    final destination = '$username/$jobId/$fileName';
 
     task = FirebaseApi.uploadFile(destination, file!);
     setState(() {});
@@ -284,4 +334,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     final urlDownload = await snapshot.ref.getDownloadURL();
     return urlDownload;
   }
+}
+
+class ScreenArguments {
+  final String jobId;
+  final bool showCompletedJobDetails;
+
+  ScreenArguments({required this.jobId, required this.showCompletedJobDetails});
 }

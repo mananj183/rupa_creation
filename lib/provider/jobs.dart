@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:rupa_creation/firebase/firebase_api.dart';
 import 'package:rupa_creation/provider/job_data.dart';
 
 import '../utility/app_urls.dart';
@@ -10,10 +11,13 @@ class Jobs with ChangeNotifier {
   List<JobData> _pendingJobs = [];
   List<JobData> _completedJobs = [];
   final String authToken;
+  final String userId;
 
-  Jobs({required this.authToken, List<JobData>? pendingJobs}) : _pendingJobs = pendingJobs ?? [];
-
-  // JobPerformer(this.name, this.userId);
+  Jobs(
+      {required this.userId,
+      required this.authToken,
+      List<JobData>? pendingJobs})
+      : _pendingJobs = pendingJobs ?? [];
 
   List<JobData> get pendingJobs {
     return [..._pendingJobs];
@@ -23,8 +27,9 @@ class Jobs with ChangeNotifier {
     return _completedJobs;
   }
 
-  Future<void> fetchAndSetProducts(String userId) async {
-    var url = '${AppUrl.pendingJobs}.json?auth=$authToken';
+  Future<void> fetchAndSetProducts() async {
+    var url =
+        '${AppUrl.jobs}.json?auth=$authToken&orderBy="creatorId"&equalTo="$userId"';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.body == 'null') {
@@ -33,7 +38,7 @@ class Jobs with ChangeNotifier {
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
 
       url =
-          '${AppUrl.baseUrl}/user-completed-jobs//$userId.json?auth=$authToken';
+          '${AppUrl.baseUrl}/user-completed-jobs/$userId.json?auth=$authToken';
       final completedResponse = await http.get(Uri.parse(url));
       final completeData = json.decode(completedResponse.body);
       final List<JobData> loadedPendingJobs = [];
@@ -45,10 +50,13 @@ class Jobs with ChangeNotifier {
             title: jd.title,
             startTime: jd.startTime,
             expectedDeliveryDate: jd.expectedDeliveryDate,
-            isComplete: completeData == null ? false : completeData[jobID],
+            isComplete:
+                completeData == null ? false : completeData[jobID] ?? false,
             progressImagesUrl: jd.progressImagesUrl,
             timestamps: jd.timestamps);
-        completeData == null || completeData[jobID] == false
+        completeData == null ||
+                completeData[jobID] == null ||
+                completeData[jobID] == false
             ? loadedPendingJobs.add(jobDataObject)
             : loadedCompletedJobs.add(jobDataObject);
       });
@@ -61,7 +69,7 @@ class Jobs with ChangeNotifier {
   }
 
   Future<void> addJob(String name, DateTime? endTime) async {
-    final url = '${AppUrl.pendingJobs}.json?auth=$authToken';
+    final url = '${AppUrl.jobs}.json?auth=$authToken';
     DateTime startTime = DateTime.now();
     try {
       final response = await http.post(Uri.parse(url),
@@ -69,8 +77,8 @@ class Jobs with ChangeNotifier {
             'name': name,
             'startTime': startTime.toString(),
             'expectedDeliveryDate': endTime.toString(),
-            'progressImagesUrl': [],
-            'timeStamps': []
+            'timeStamps': [],
+            'creatorId': userId,
           }));
       JobData newJob = JobData(
           jobId: json.decode(response.body)['name'],
@@ -84,7 +92,62 @@ class Jobs with ChangeNotifier {
     }
   }
 
-  JobData findById(String id) {
-    return _pendingJobs.firstWhere((element) => element.jobId == id);
+  JobData findById(String id, bool findCompletedJob) {
+    return findCompletedJob ? _completedJobs.firstWhere((element) => element.jobId == id) : _pendingJobs.firstWhere((element) => element.jobId == id);
+  }
+
+  Future<void> deleteJob(String jobId, bool isCompletedJob, String token, String username) async {
+    // print("username: $username   jobId- $jobId");
+    var url = '${AppUrl.jobs}/$jobId.json?auth=$token';
+    try {
+      JobData jd = findById(jobId, isCompletedJob);
+      await http.delete(Uri.parse(url));
+      if(jd.progressImagesUrl.isNotEmpty) {
+        await FirebaseApi.deleteFolder(path: '$username/$jobId');
+      }
+      if (isCompletedJob) {
+        url =
+        '${AppUrl.baseUrl}/user-completed-jobs/$userId/$jobId.json?auth=$token';
+        await http.delete(Uri.parse(url));
+        _completedJobs.remove(jd);
+      }else{
+      _pendingJobs.remove(jd);
+      }
+      notifyListeners();
+    }catch(e){
+      rethrow;
+    }
+  }
+
+  Future<void> toggleCompleteStatus(
+      String userId, String token, String jobId, bool isComplete) async {
+    final url =
+        '${AppUrl.baseUrl}/user-completed-jobs/$userId/$jobId.json?auth=$token';
+    final url2 = '${AppUrl.jobs}/$jobId.json?auth=$token';
+    DateTime timestamp = DateTime.now();
+    try {
+      await http.put(
+        Uri.parse(url),
+        body: json.encode(
+          isComplete,
+        ),
+      );
+      await http.patch(Uri.parse(url2), body: json.encode({
+        "expectedDeliveryDate": timestamp.toIso8601String(),
+      }));
+      JobData jd = findById(jobId, !isComplete);
+      jd.isComplete = isComplete;
+      jd.expectedDeliveryDate = timestamp;
+      if(isComplete){
+        _completedJobs.add(jd);
+        _pendingJobs.remove(jd);
+      }else{
+        _pendingJobs.add(jd);
+        _completedJobs.remove(jd);
+      }
+      notifyListeners();
+    } catch (error) {
+      rethrow;
+    }
   }
 }

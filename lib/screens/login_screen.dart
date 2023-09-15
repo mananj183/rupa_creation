@@ -16,64 +16,120 @@ class LoginScreen extends StatelessWidget {
     final deviceSize = MediaQuery.of(context).size;
     return Scaffold(
       body: SingleChildScrollView(
-        child: Container(
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                Colors.deepPurple[100]!,
-                Colors.deepPurple[200]!,
-                Colors.deepPurple[400]!,
-                Colors.deepPurple[500]!,
-              ],
-                  stops: const [
-                0.1,
-                0.33,
-                0.66,
-                1.0
-              ])),
-          height: deviceSize.height,
-          width: deviceSize.width,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Container(
-                  height: 60,
-                  margin: const EdgeInsets.only(bottom: 20.0),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8.0, horizontal: 50.0),
-                  // transform: Matrix4.rotationZ(-8 * pi / 180)..translate(-10.0),
-                  decoration: BoxDecoration(
-                    border:
-                        Border.all(color: Colors.deepPurple.shade400, width: 5),
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 8,
-                        color: Colors.deepPurple.shade800,
-                        offset: const Offset(0, 1),
+        child: Stack(
+          children: [
+            Container(
+              // alignment: Alignment.bottomRight,
+              color: Colors.white,
+              height: deviceSize.height,
+              width: deviceSize.width,
+              child: Container(
+                  alignment: Alignment.bottomRight,
+                  width: deviceSize.width,
+                  height: deviceSize.height,
+                  child: Image.asset(
+                    'assets/images/login_bg.jpg',
+                    fit: BoxFit.fitHeight,
+                    width: deviceSize.width,
+                    height: deviceSize.height,
+                  )),
+            ),
+            Column(
+              children: [
+                Container(
+                  height: 120,
+                  width: deviceSize.width,
+                  color: Colors.transparent,
+                ),
+                Container(
+                  color: Colors.transparent,
+                  child: Stack(
+                    children: [
+                      Container(
+                          height: 110,
+                          width: deviceSize.width / 1.25,
+                          decoration: BoxDecoration(
+                              color: Colors.orangeAccent.shade400,
+                              borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(30),
+                                  bottomRight: Radius.circular(30)))),
+                      Container(
+                        height: 110,
+                        width: deviceSize.width / 1.25,
+                        decoration: const BoxDecoration(
+                            color: Colors.black12,
+                            borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(30),
+                                bottomRight: Radius.circular(30))),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.only(
+                            top: 10, right: 10, bottom: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: deviceSize.width / 5,
+                              height: deviceSize.width / 5,
+                              color: Colors.transparent,
+                              child: Image.asset('assets/images/rupa_logo.png',
+                                  fit: BoxFit.cover),
+                            ),
+                            Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.only(left: 3),
+                                  width: deviceSize.width / 1.4 -
+                                      deviceSize.width / 7,
+                                  height: 45,
+                                  color: Colors.transparent,
+                                  child: const Text('Rupa',
+                                      style: TextStyle(
+                                          fontSize: 47,
+                                          fontFamily: 'Alta',
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF221C35))),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.only(right: 1),
+                                  alignment: Alignment.centerRight,
+                                  width: deviceSize.width / 1.4 -
+                                      deviceSize.width / 7,
+                                  height: 45,
+                                  color: Colors.transparent,
+                                  child: const Text('Creation',
+                                      style: TextStyle(
+                                          fontSize: 47,
+                                          fontFamily: 'Alta',
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF221C35))),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
                       )
                     ],
                   ),
-                  child: const Text(
-                    'Rupa Creation',
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
                 ),
+              ],
+            ),
+            Container(
+              decoration: const BoxDecoration(color: Colors.transparent),
+              height: deviceSize.height,
+              width: deviceSize.width,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    flex: deviceSize.width > 600 ? 1 : 2,
+                    child: const AuthCard(),
+                  ),
+                ],
               ),
-              Flexible(
-                flex: deviceSize.width > 600 ? 1 : 2,
-                child: const AuthCard(),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -92,11 +148,8 @@ class AuthCard extends StatefulWidget {
 class _AuthCardState extends State<AuthCard> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.login;
-  final Map<String, String> _authData = {
-    'email': '',
-  };
+  final Map<String, String> _authData = {'email': '', 'name': ''};
   var _isLoading = false;
-  final _usernameController = TextEditingController();
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -135,7 +188,12 @@ class _AuthCardState extends State<AuthCard> {
         // Sign user up
         await Provider.of<Auth>(context, listen: false).signup(
           _authData['email']!,
+          _authData['name']!,
         );
+
+        setState(() {
+          _authMode = AuthMode.login;
+        });
       }
     } on HttpException catch (error) {
       var errorMessage = 'Authentication failed';
@@ -177,85 +235,98 @@ class _AuthCardState extends State<AuthCard> {
   @override
   Widget build(BuildContext context) {
     final deviceSize = MediaQuery.of(context).size;
-    return Card(
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFF221C35), width: 2),
         borderRadius: BorderRadius.circular(15.0),
       ),
-      elevation: 8.0,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.deepPurple.shade400, width: 2),
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        height: _authMode == AuthMode.signup ? 290 : 200,
-        constraints:
-            BoxConstraints(minHeight: _authMode == AuthMode.signup ? 300 : 240),
-        width: deviceSize.width * 0.75,
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Username'),
-                  controller: _usernameController,
-                  validator: (value) {
-                    if (value!.length < 4) {
-                      return 'Invalid username!';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _authData['email'] = value!;
-                  },
-                ),
-                if (_authMode == AuthMode.signup)
-                  TextFormField(
-                    enabled: _authMode == AuthMode.signup,
-                    decoration:
-                        const InputDecoration(labelText: 'Confirm Username'),
-                    validator: _authMode == AuthMode.signup
-                        ? (value) {
-                            if (value!.length < 4) {
-                              return 'Invalid username!';
-                            } else if (value !=
-                                _usernameController.text) {
-                              return 'Usernames do not match!';
-                            }
-                            return null;
-                          }
-                        : null,
-                  ),
-                const SizedBox(
-                  height: 20,
-                ),
-                if (_isLoading)
-                  const CircularProgressIndicator()
-                else
-                  TextButton(
-                    onPressed: _submit,
-                    style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 30.0, vertical: 8.0),
-                    ),
-                    child:
-                        Text(_authMode == AuthMode.login ? 'LOGIN' : 'SIGN UP'),
-                  ),
-                TextButton(
-                  onPressed: _switchAuthMode,
+      height: _authMode == AuthMode.signup ? 290 : 200,
+      constraints:
+          BoxConstraints(minHeight: _authMode == AuthMode.signup ? 300 : 240),
+      width: deviceSize.width * 0.75,
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              _authMode == AuthMode.signup
+                  ? TextFormField(
+                      decoration: const InputDecoration(
+                          labelText: 'Your Name',
+                          labelStyle: TextStyle(color: Color(0xFF221C35)),
+                          enabledBorder: UnderlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Color(0xFF221C35)))),
+                      validator: (value) {
+                        if (value!.length < 4 ||
+                            RegExp(r"[^a-z ]", caseSensitive: false)
+                                .hasMatch(value)) {
+                          return 'Invalid Name!';
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        _authData['name'] = value!.trim();
+                      },
+                    )
+                  : Container(),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Enter Username',
+                    labelStyle: TextStyle(color: Color(0xFF221C35)),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF221C35)),
+                    )),
+                validator: _authMode == AuthMode.signup
+                    ? (value) {
+                        if (value!.length < 4) {
+                          return 'Use at least 4 characters';
+                        }
+                        return null;
+                      }
+                    : null,
+                onSaved: (value) {
+                  _authData['email'] = value!.trim();
+                },
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              if (_isLoading)
+                const CircularProgressIndicator()
+              else
+                ElevatedButton(
+                  onPressed: _submit,
                   style: TextButton.styleFrom(
+                    backgroundColor: Colors.orange.shade500,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 30.0, vertical: 4),
+                        horizontal: 40.0, vertical: 10.0),
                   ),
                   child: Text(
-                      '${_authMode == AuthMode.login ? 'SIGNUP' : 'LOGIN'} INSTEAD'),
+                    _authMode == AuthMode.login ? 'LOGIN' : 'SIGN UP',
+                    style:
+                        const TextStyle(color: Color(0xFF221C35), fontSize: 17),
+                  ),
                 ),
-              ],
-            ),
+              const SizedBox(
+                height: 10,
+              ),
+              TextButton(
+                onPressed: _switchAuthMode,
+                child: Text(
+                  '${_authMode == AuthMode.login ? 'Signup' : 'Login'} Instead?',
+                  style: const TextStyle(
+                      color: Colors.blueAccent,
+                      decoration: TextDecoration.underline,
+                      fontWeight: FontWeight.w400),
+                ),
+              ),
+            ],
           ),
         ),
       ),
