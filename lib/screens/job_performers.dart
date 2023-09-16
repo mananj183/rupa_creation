@@ -36,7 +36,7 @@ class JobPerformers extends StatelessWidget {
                 itemBuilder: (_, i) => Column(
                   children: [
                     ListTile(title: Text(userData.users[i].fullName!), onTap: (){
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => JobOverviewScreen(uid : userData.users[i].userId)));
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => JobOverviewScreen(uid : userData.users[i].userId, uEmail: userData.users[i].email,)));
                     },),
                     const Divider(),
                   ],

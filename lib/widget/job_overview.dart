@@ -10,7 +10,9 @@ import '../screens/job_details.dart';
 
 class JobOverview extends StatefulWidget {
   final bool showCompletedJobDetails;
-  const JobOverview({Key? key, required this.showCompletedJobDetails})
+  final String? uid;
+  final String? uEmail;
+  const JobOverview({Key? key, required this.showCompletedJobDetails, this.uid, this.uEmail})
       : super(key: key);
 
   @override
@@ -48,7 +50,7 @@ class _JobOverviewState extends State<JobOverview> {
                               job,
                               "Mark Complete",
                               "Are you sure you want to mark this job as completed?",
-                              true);
+                              true, widget.uid, widget.uEmail);
                         },
                       ),
                     )
@@ -64,7 +66,7 @@ class _JobOverviewState extends State<JobOverview> {
                   icon: const Icon(Icons.delete),
                   onPressed: () async {
                     buildShowDialog(context, authData, job, "Delete Job",
-                        "Are you sure you want to delete this job?", false);
+                        "Are you sure you want to delete this job?", false, widget.uid, widget.uEmail);
                   },
                 ),
               )
@@ -126,7 +128,9 @@ class _JobOverviewState extends State<JobOverview> {
                             arguments: ScreenArguments(
                                 jobId: job.jobId,
                                 showCompletedJobDetails:
-                                    widget.showCompletedJobDetails));
+                                    widget.showCompletedJobDetails,
+                            uid: widget.uid,
+                            uEmail: widget.uEmail));
                       },
                     ),
                   ),
@@ -154,7 +158,7 @@ class _JobOverviewState extends State<JobOverview> {
   }
 
   buildShowDialog(BuildContext context, Auth authData, JobData job,
-      String title, String content, bool isMarkCompleteTask) async {
+      String title, String content, bool isMarkCompleteTask, String? uid, String? uEmail) async {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -189,12 +193,13 @@ class _JobOverviewState extends State<JobOverview> {
                 isMarkCompleteTask
                     ? await Provider.of<Jobs>(context, listen: false)
                         .toggleCompleteStatus(
-                            authData.userId!, authData.token!, job.jobId, true)
+                            uid ?? authData.userId!,
+                    authData.token!, job.jobId, true)
                     : await Provider.of<Jobs>(context, listen: false).deleteJob(
                         job.jobId,
                         widget.showCompletedJobDetails,
                         authData.token!,
-                        authData.userEmailId!);
+                        uEmail ?? authData.userEmailId!);
               } catch (e) {
                 setState(() {
                   _isLoading = false;

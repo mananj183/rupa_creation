@@ -68,7 +68,7 @@ class Jobs with ChangeNotifier {
     }
   }
 
-  Future<void> addJob(String name, DateTime? endTime) async {
+  Future<void> addJob(String name, DateTime? endTime, String? uId) async {
     final url = '${AppUrl.jobs}.json?auth=$authToken';
     DateTime startTime = DateTime.now();
     try {
@@ -78,7 +78,7 @@ class Jobs with ChangeNotifier {
             'startTime': startTime.toString(),
             'expectedDeliveryDate': endTime.toString(),
             'timeStamps': [],
-            'creatorId': userId,
+            'creatorId': uId ?? userId,
           }));
       JobData newJob = JobData(
           jobId: json.decode(response.body)['name'],

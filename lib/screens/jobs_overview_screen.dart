@@ -7,7 +7,8 @@ import '../widget/job_list.dart';
 
 class JobOverviewScreen extends StatelessWidget {
   final String? uid;
-  const JobOverviewScreen({Key? key, this.uid}) : super(key: key);
+  final String? uEmail;
+  const JobOverviewScreen({Key? key, this.uid, this.uEmail}) : super(key: key);
 
   Future<void> _refreshProducts(BuildContext context) async {
     await Provider.of<Jobs>(context, listen: false)
@@ -33,8 +34,10 @@ class JobOverviewScreen extends StatelessWidget {
                   : RefreshIndicator(
                       onRefresh: () => _refreshProducts(context),
                       child: Consumer<Jobs>(builder: (ctx, jobsData, _) {
-                        return const JobList(
+                        return JobList(
                           showCompletedJobs: false,
+                          uid: uid,
+                          uEmail: uEmail,
                         );
                       }),
                     )),
@@ -46,7 +49,7 @@ class JobOverviewScreen extends StatelessWidget {
           onPressed: () {
             showDialog(
               context: context,
-              builder: (ctx) => const AddJobPage(),
+              builder: (ctx) => AddJobPage(uid: uid,),
             );
           },
         ),

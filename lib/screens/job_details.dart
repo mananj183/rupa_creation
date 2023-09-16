@@ -31,6 +31,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
         ModalRoute.of(context)!.settings.arguments as ScreenArguments;
     final jobId = arguments.jobId;
     bool showCompletedJobDetails = arguments.showCompletedJobDetails;
+    final uId = arguments.uid;
+    final uEmail = arguments.uEmail;
     final loadedJobs = Provider.of<Jobs>(
       context,
     );
@@ -117,7 +119,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                     });
                                     try {
                                       await loadedJob.addStartTime(
-                                          loggedInUser.userId!,
+                                          uId ?? loggedInUser.userId!,
                                           loggedInUser.token!);
                                     } catch (e) {
                                       await buildShowDialog(context, e);
@@ -132,8 +134,6 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                     style: TextStyle(color: Theme.of(context).colorScheme.primary,),
                                   )),
                             ),
-                            //   ],
-                            // ),
                             const SizedBox(
                               width: 20,
                             ),
@@ -151,7 +151,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   });
                                   try {
                                     await loadedJob.addEndTime(
-                                        loggedInUser.userId!,
+                                        uId ?? loggedInUser.userId!,
                                         loggedInUser.token!);
                                   } catch (e) {
                                     await buildShowDialog(context, e);
@@ -241,7 +241,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                                       _isLoading = true;
                                                     });
                                                     await selectAndUploadFile(
-                                                            loggedInUser
+                                                        uEmail ?? loggedInUser
                                                                 .userEmailId!,
                                                             jobId)
                                                         .then((imageUrl) async {
@@ -251,7 +251,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                                       try {
                                                         await loadedJob.addProgressImage(
                                                             imageUrl,
-                                                            loggedInUser
+                                                            uId ?? loggedInUser
                                                                 .userId!,
                                                             loggedInUser
                                                                 .token!);
@@ -325,6 +325,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 class ScreenArguments {
   final String jobId;
   final bool showCompletedJobDetails;
+  final String? uid;
+  final String? uEmail;
 
-  ScreenArguments({required this.jobId, required this.showCompletedJobDetails});
+  ScreenArguments({required this.jobId, required this.showCompletedJobDetails, this.uid, this.uEmail});
 }

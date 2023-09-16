@@ -6,7 +6,9 @@ import 'package:rupa_creation/widget/job_overview.dart';
 
 class JobList extends StatelessWidget {
   final bool showCompletedJobs;
-  const JobList({Key? key, required this.showCompletedJobs}) : super(key: key);
+  final String? uid;
+  final String? uEmail;
+  const JobList({Key? key, required this.showCompletedJobs, this.uid, this.uEmail}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,7 @@ class JobList extends StatelessWidget {
                   value: loadedJobs[i],
                   child: Column(
                     children: [
-                      JobOverview(showCompletedJobDetails: showCompletedJobs),
+                      JobOverview(showCompletedJobDetails: showCompletedJobs, uid: uid, uEmail: uEmail,),
                     ],
                   ),
                 ),

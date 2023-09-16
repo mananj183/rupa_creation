@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:rupa_creation/provider/jobs.dart';
 
 class AddJobPage extends StatefulWidget {
-  const AddJobPage({Key? key}) : super(key: key);
+  final String? uid;
+  const AddJobPage({Key? key, this.uid}) : super(key: key);
 
   @override
   State<AddJobPage> createState() => _AddJobPageState();
@@ -16,7 +17,7 @@ class _AddJobPageState extends State<AddJobPage> {
   TextEditingController startDateController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
   DateTime? endDatePicked;
-  var _isloading = false;
+  var _isLoading = false;
   DateTime? startTime;
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _AddJobPageState extends State<AddJobPage> {
   @override
   Widget build(BuildContext context) {
     final jobs = Provider.of<Jobs>(context);
-    return _isloading ? Center(child: CircularProgressIndicator( color: Theme.of(context).colorScheme.primary,),) : AlertDialog(
+    return _isLoading ? Center(child: CircularProgressIndicator( color: Theme.of(context).colorScheme.primary,),) : AlertDialog(
       backgroundColor: Theme.of(context).backgroundColor,
       title: Container(
         padding: const EdgeInsets.all(15),
@@ -115,14 +116,14 @@ class _AddJobPageState extends State<AddJobPage> {
         TextButton(
           onPressed: () async {
             setState(() {
-              _isloading = true;
+              _isLoading = true;
             });
             try {
               if(jobNameController.value.text.isEmpty || endDatePicked == null){
                 throw Exception("Please provide all details");
               }
               await jobs.addJob(
-                  jobNameController.value.text, endDatePicked);
+                  jobNameController.value.text, endDatePicked, widget.uid);
             }catch(e){
               await showDialog(context: context, builder: (ctx) => AlertDialog(
                 title: const Text('Error Occurred'),
@@ -133,7 +134,7 @@ class _AddJobPageState extends State<AddJobPage> {
               ));
             }finally {
               setState(() {
-                _isloading = false;
+                _isLoading = false;
               });
               Navigator.of(context).pop();
             }

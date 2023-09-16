@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rupa_creation/screens/completed_jobs_overview.dart';
+import 'package:rupa_creation/screens/job_performers.dart';
 import 'package:rupa_creation/screens/jobs_overview_screen.dart';
 
 import '../provider/auth.dart';
@@ -20,6 +21,15 @@ class AppDrawer extends StatelessWidget {
             automaticallyImplyLeading: false,
             backgroundColor: Theme.of(context).colorScheme.secondary,
           ),
+          name == "rupaCreation69" ? ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text('Users'),
+            onTap: () {
+              Navigator.of(context)
+                  .pushReplacement(MaterialPageRoute(builder: (_) => const JobPerformers()));
+            },
+          ) : Container(),
+          name == "rupaCreation69" ? const Divider() : Container(),
           ListTile(
             leading: const Icon(Icons.pending_actions),
             title: const Text('Pending Jobs'),
