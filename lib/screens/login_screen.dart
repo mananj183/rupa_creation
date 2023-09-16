@@ -265,6 +265,7 @@ class _AuthCardState extends State<AuthCard> {
                         }
                         return null;
                       },
+                      onChanged: (_) => setState(() {}),
                       onSaved: (value) {
                         _authData['name'] = value!.trim();
                       },
@@ -277,14 +278,13 @@ class _AuthCardState extends State<AuthCard> {
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Color(0xFF221C35)),
                     )),
-                validator: _authMode == AuthMode.signup
-                    ? (value) {
+                validator: (value) {
                         if (value!.length < 4) {
                           return 'Use at least 4 characters';
                         }
                         return null;
-                      }
-                    : null,
+                      },
+                onChanged: (_) => setState(() {}),
                 onSaved: (value) {
                   _authData['email'] = value!.trim();
                 },

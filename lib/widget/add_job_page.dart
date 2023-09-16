@@ -55,8 +55,12 @@ class _AddJobPageState extends State<AddJobPage> {
               labelText: 'Job title',
             ),
             controller: jobNameController,
-            validator: (value) {
 
+            validator: (value) {
+              if(value!.isEmpty){
+                return "Provide Job title";
+              }
+              return null;
             },
           ),
           TextFormField(
@@ -78,6 +82,12 @@ class _AddJobPageState extends State<AddJobPage> {
                     labelText: 'End Date',
                   ),
                   controller: endDateController,
+                  validator: (value){
+                    if(value!.isEmpty){
+                      return "Pick Date";
+                    }
+                    return null;
+                  },
                 ),
               ),
               IconButton(
@@ -108,6 +118,9 @@ class _AddJobPageState extends State<AddJobPage> {
               _isloading = true;
             });
             try {
+              if(jobNameController.value.text.isEmpty || endDatePicked == null){
+                throw Exception("Please provide all details");
+              }
               await jobs.addJob(
                   jobNameController.value.text, endDatePicked);
             }catch(e){
