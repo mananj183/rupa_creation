@@ -1,37 +1,27 @@
 {
   "project_info": {
-    "project_number": "441534047004",
-    "firebase_url": "https://rupacreation-d7711-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "project_id": "rupacreation-d7711",
-    "storage_bucket": "rupacreation-d7711.appspot.com"
+    "project_number": "93536344152",
+    "firebase_url": "https://rupacreation-a93e7-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "rupacreation-a93e7",
+    "storage_bucket": "rupacreation-a93e7.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:441534047004:android:91795b58e5cf3fcad090d9",
+        "mobilesdk_app_id": "1:93536344152:android:7fd70d7bccc65b7f4f122d",
         "android_client_info": {
           "package_name": "com.shoppie.rupa_creation"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "441534047004-tk7ksscush2ai3qs6jc67p6gtsgmc5m3.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAUS5-aw8kl_ZfTaoAahT7lFdkYN-zTE7c"
+          "current_key": "AIzaSyCzfWFnJt8H827n5F7XmAxw_NJ5P4V3bwY"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "441534047004-tk7ksscush2ai3qs6jc67p6gtsgmc5m3.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

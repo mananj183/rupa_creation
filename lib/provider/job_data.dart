@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:rupa_creation/firebase/firebase_api.dart';
 
 import '../utility/app_urls.dart';
 import 'package:http/http.dart' as http;
@@ -101,6 +102,28 @@ class JobData with ChangeNotifier{
         "timestamps": timestamps,
       }));
       progressImagesUrl.add(imageUrl);
+      notifyListeners();
+    }catch(e){
+      rethrow;
+    }
+  }
+
+  Future<void> deleteProgressImage(String imageUrl, String userId, String token) async{
+    final url = '${AppUrl.jobs}/$jobId.json?auth=$token';
+    try{
+      List<String> newProgressImages = List.from(progressImagesUrl);
+      newProgressImages.remove(imageUrl);
+      await http.put(Uri.parse(url), body: json.encode({
+        'creatorId': userId,
+        'expectedDeliveryDate': expectedDeliveryDate.toString(),
+        'name': title,
+        "startTime": startTime.toString(),
+        "isCompleted": isComplete,
+        "progressImagesUrl": newProgressImages,
+        "timestamps": timestamps,
+      }));
+      await FirebaseApi.deleteFile(imageUrl: imageUrl);
+      progressImagesUrl.remove(imageUrl);
       notifyListeners();
     }catch(e){
       rethrow;

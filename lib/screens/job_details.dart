@@ -85,7 +85,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       backgroundColor: Theme.of(context).backgroundColor,
       body: _isLoading
           ? Center(
-              child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
+              child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.primary),
             )
           : Container(
               padding: const EdgeInsets.all(10),
@@ -94,14 +95,14 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                 children: [
                   showCompletedJobDetails
                       ? const Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: Text(
+                          padding: EdgeInsets.all(10.0),
+                          child: Text(
                             'Timestamps',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.w700),
                           ),
-                      )
+                        )
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -111,7 +112,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   style: TextButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 10, horizontal: 50),
-                                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
                                       shape: const StadiumBorder()),
                                   onPressed: () async {
                                     setState(() {
@@ -131,7 +134,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   },
                                   child: Text(
                                     "Start",
-                                    style: TextStyle(color: Theme.of(context).colorScheme.primary,),
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
                                   )),
                             ),
                             const SizedBox(
@@ -143,7 +149,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                 style: TextButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 10, horizontal: 50),
-                                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.secondary,
                                     shape: const StadiumBorder()),
                                 onPressed: () async {
                                   setState(() {
@@ -163,7 +170,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                 },
                                 child: Text(
                                   "Stop",
-                                  style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary),
                                 ),
                               ),
                             ),
@@ -176,7 +186,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                       builder: (context, _) {
                         final job = context.watch<JobData>();
                         return Table(
-                          border: TableBorder.all(color: Theme.of(context).colorScheme.primary),
+                          border: TableBorder.all(
+                              color: Theme.of(context).colorScheme.primary),
                           children: createTimeStampTable(job.timestamps),
                         );
                       }),
@@ -195,7 +206,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                         itemCount: loadedJob.progressImagesUrl.length + 1,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4, // no. of columns
+                                crossAxisCount: 3, // no. of columns
                                 childAspectRatio: 1.5 / 2, // length/width ratio
                                 crossAxisSpacing: 5, // space btw columns
                                 mainAxisSpacing: 5 // space btw rows
@@ -207,26 +218,81 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                   child: i < loadedJob.progressImagesUrl.length
                                       ? GridTile(
-                                          child: Card(
-                                            child: CachedNetworkImage(
-                                              fit: BoxFit.fill,
-                                              imageUrl: loadedJob
-                                                  .progressImagesUrl[i],
-                                              progressIndicatorBuilder:
-                                                  (context, url,
-                                                          downloadProgress) =>
-                                                      Center(
-                                                child:
-                                                    CircularProgressIndicator(
-                                                        value: downloadProgress
-                                                            .progress),
+                                    footer: showCompletedJobDetails ? Container() : Container(
+                                        height: 35,
+                                        color: Theme.of(context).colorScheme.secondary.withOpacity(0.7),
+                                        child: IconButton(icon: Icon(Icons.delete, size: 20, color: Theme.of(context).colorScheme.primary,), onPressed: () async{
+                                         try {
+                                           setState(() {
+                                             _isLoading = true;
+                                           });
+                                           await buildDeleteShowDialog(context: context, loadedJob: loadedJob, imageUrl: loadedJob.progressImagesUrl[i], userId: uId ?? loggedInUser.userId!, token: loggedInUser.token!);
+                                         }catch(e){
+                                           await buildShowDialog(context, e);
+                                         }finally{
+                                           setState(() {
+                                             _isLoading = false;
+                                           });
+                                         }
+                                        },),
+                                      ),
+                                          child: GestureDetector(
+                                            child: Card(
+                                              child: CachedNetworkImage(
+                                                fit: BoxFit.fill,
+                                                imageUrl: loadedJob
+                                                    .progressImagesUrl[i],
+                                                progressIndicatorBuilder:
+                                                    (context, url,
+                                                            downloadProgress) =>
+                                                        Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          value: downloadProgress
+                                                              .progress),
+                                                ),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        const Icon(Icons.error),
                                               ),
-                                              errorWidget:
-                                                  (context, url, error) =>
-                                                      const Icon(Icons.error),
                                             ),
+                                            onTap: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      fullscreenDialog: true,
+                                                      builder: (BuildContext context) {
+                                                        return Scaffold(
+                                                          appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.secondary),
+                                                          body: SizedBox(
+                                                              height: MediaQuery.of(context).size.height,
+                                                              width: MediaQuery.of(context).size.width,
+                                                              child: Hero(
+                                                                tag: 'imageHero',
+                                                                child: CachedNetworkImage(
+                                                                  fit: BoxFit.fitWidth,
+                                                                  imageUrl: loadedJob
+                                                                      .progressImagesUrl[i],
+                                                                  progressIndicatorBuilder:
+                                                                      (context, url,
+                                                                      downloadProgress) =>
+                                                                      Center(
+                                                                        child:
+                                                                        CircularProgressIndicator(
+                                                                            value: downloadProgress
+                                                                                .progress),
+                                                                      ),
+                                                                  errorWidget:
+                                                                      (context, url, error) =>
+                                                                  const Icon(Icons.error),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                        );
+                                                      }));
+                                            },
                                           ),
-                                          // child: Image.network(loadedJob.progressImagesUrl[i]),
+                                    
                                         )
                                       : GridTile(
                                           child: Card(
@@ -241,20 +307,23 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                                       _isLoading = true;
                                                     });
                                                     await selectAndUploadFile(
-                                                        uEmail ?? loggedInUser
-                                                                .userEmailId!,
+                                                            uEmail ??
+                                                                loggedInUser
+                                                                    .userEmailId!,
                                                             jobId)
                                                         .then((imageUrl) async {
                                                       if (imageUrl == null) {
                                                         return;
                                                       }
                                                       try {
-                                                        await loadedJob.addProgressImage(
-                                                            imageUrl,
-                                                            uId ?? loggedInUser
-                                                                .userId!,
-                                                            loggedInUser
-                                                                .token!);
+                                                        await loadedJob
+                                                            .addProgressImage(
+                                                                imageUrl,
+                                                                uId ??
+                                                                    loggedInUser
+                                                                        .userId!,
+                                                                loggedInUser
+                                                                    .token!);
                                                       } catch (e) {
                                                         await buildShowDialog(
                                                             context, e);
@@ -278,6 +347,60 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  buildDeleteShowDialog({required BuildContext context, required JobData loadedJob, required String imageUrl, required String userId, required String token}) async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Container(
+          padding: const EdgeInsets.all(15),
+          decoration: const BoxDecoration(
+            color: Colors.red,
+          ),
+          child: const Text(
+            "Delete image",
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+        titlePadding: const EdgeInsets.all(0),
+        content: const Text("Are you sure you want to delete this image?"),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Yes'),
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+              try {
+                Navigator.of(ctx).pop();
+                await loadedJob.deleteProgressImage(
+                    imageUrl,
+                    userId,
+                    token);
+              } catch (e) {
+                setState(() {
+                  _isLoading = false;
+                });
+                Navigator.of(ctx).pop();
+                await buildShowDialog(context, e);
+              } finally {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -328,5 +451,9 @@ class ScreenArguments {
   final String? uid;
   final String? uEmail;
 
-  ScreenArguments({required this.jobId, required this.showCompletedJobDetails, this.uid, this.uEmail});
+  ScreenArguments(
+      {required this.jobId,
+      required this.showCompletedJobDetails,
+      this.uid,
+      this.uEmail});
 }

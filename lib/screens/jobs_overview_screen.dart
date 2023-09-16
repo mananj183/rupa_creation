@@ -33,13 +33,15 @@ class JobOverviewScreen extends StatelessWidget {
                     )
                   : RefreshIndicator(
                       onRefresh: () => _refreshProducts(context),
-                      child: Consumer<Jobs>(builder: (ctx, jobsData, _) {
-                        return JobList(
-                          showCompletedJobs: false,
-                          uid: uid,
-                          uEmail: uEmail,
-                        );
-                      }),
+                      child: Consumer<Jobs>(
+                        builder: (ctx, jobsData, _) {
+                          return JobList(
+                            showCompletedJobs: false,
+                            uid: uid,
+                            uEmail: uEmail,
+                          );
+                        },
+                      ),
                     )),
       floatingActionButton: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.secondary,
@@ -49,7 +51,9 @@ class JobOverviewScreen extends StatelessWidget {
           onPressed: () {
             showDialog(
               context: context,
-              builder: (ctx) => AddJobPage(uid: uid,),
+              builder: (ctx) => AddJobPage(
+                uid: uid,
+              ),
             );
           },
         ),

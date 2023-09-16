@@ -15,39 +15,91 @@ class JobPerformers extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Job Performers"),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-      ),
-      drawer: const AppDrawer(),
-      backgroundColor: Theme.of(context).backgroundColor,
-      body: FutureBuilder(
+        appBar: AppBar(
+          title: const Text("Job Performers"),
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+        ),
+        drawer: const AppDrawer(),
+        backgroundColor: Theme.of(context).backgroundColor,
+        body: FutureBuilder(
           future: _refreshProducts(context),
-          builder: (ctx, snapshot) =>
-          snapshot.connectionState == ConnectionState.waiting
+          builder: (ctx, snapshot) => snapshot.connectionState ==
+                  ConnectionState.waiting
               ? const Center(
-            child: CircularProgressIndicator(),
-          )
+                  child: CircularProgressIndicator(),
+                )
               : RefreshIndicator(
-            onRefresh: () => _refreshProducts(context),
-            child: Consumer<Users>(builder: (ctx, userData, _) {
-              return ListView.builder(
-                itemCount: userData.users.length,
-                itemBuilder: (_, i) => Column(
-                  children: [
-                    ListTile(title: Text(userData.users[i].fullName!), onTap: (){
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => JobOverviewScreen(uid : userData.users[i].userId, uEmail: userData.users[i].email,)));
-                    },),
-                    const Divider(),
-                  ],
-                ),
-              );
-            }),
-          )),
-    );
+                  onRefresh: () => _refreshProducts(context),
+                  child: Consumer<Users>(
+                    builder: (ctx, userData, _) {
+                      return ListView.builder(
+                        itemCount: userData.users.length,
+                        itemBuilder: (_, i) => Column(
+                          children: [
+                            ListTile(
+                              title: Text(userData.users[i].fullName!),
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (_) => JobOverviewScreen(
+                                          uid: userData.users[i].userId,
+                                          uEmail: userData.users[i].email,
+                                        )));
+                              },
+                            ),
+                            const Divider(),
+                          ],
+                        ),
+                      );
+                    },
+                  )),
+          // body: FutureBuilder(
+          //     future: _refreshProducts(context),
+          //     builder: (ctx, snapshot) {
+          //       if (snapshot.connectionState == ConnectionState.done) {
+          //         if (snapshot.hasError) {
+          //           return RefreshIndicator(
+          //             onRefresh: () => _refreshProducts(context),
+          //             child: Center(
+          //               child: Text(
+          //                 '${snapshot.error} occurred',
+          //                 style: const TextStyle(fontSize: 18),
+          //               ),
+          //             ),
+          //           );
+          //           // if we got our data
+          //         } else if (snapshot.hasData) {
+          //           return RefreshIndicator(
+          //             onRefresh: () => _refreshProducts(context),
+          //             child: Consumer<Users>(builder: (ctx, userData, _) {
+          //               return ListView.builder(
+          //                 itemCount: userData.users.length,
+          //                 itemBuilder: (_, i) => Column(
+          //                   children: [
+          //                     ListTile(
+          //                       title: Text(userData.users[i].fullName!),
+          //                       onTap: () {
+          //                         Navigator.of(context).push(MaterialPageRoute(
+          //                             builder: (_) => JobOverviewScreen(
+          //                                   uid: userData.users[i].userId,
+          //                                   uEmail: userData.users[i].email,
+          //                                 )));
+          //                       },
+          //                     ),
+          //                     const Divider(),
+          //                   ],
+          //                 ),
+          //               );
+          //             }),
+          //           );
+          //         }
+          //       }
+          //       return const Center(
+          //         child: CircularProgressIndicator(),
+          //       );
+          //     }),
+        ));
   }
 }
-
 
 // class JobPerformers extends StatefulWidget {
 //   const JobPerformers({Key? key}) : super(key: key);
