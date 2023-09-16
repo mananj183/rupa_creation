@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rupa_creation/modal/user.dart';
 import 'package:rupa_creation/provider/auth.dart';
 import 'package:rupa_creation/provider/jobs.dart';
 import 'package:rupa_creation/provider/users.dart';
@@ -49,12 +48,13 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'Flutter Demo',
             theme: ThemeData(
-              primarySwatch: Colors.blue,
+              colorScheme: ColorScheme.fromSwatch().copyWith(secondary: const Color.fromRGBO(245, 131, 33, 1), primary: const Color(0xFF221C35)),
+              backgroundColor: const Color.fromRGBO(255, 251, 247, 1),
             ),
             home: auth.isAuth && auth.userEmailId == 'rupaCreation69'
                 ? const JobPerformers()
                 : auth.isAuth && auth.userEmailId != 'rupaCreation69'
-                    ? JobOverviewScreen()
+                    ? const JobOverviewScreen()
                     : FutureBuilder(
                         future: auth.tryAutoLogin(),
                         builder: (_, authResultSnapshot) =>

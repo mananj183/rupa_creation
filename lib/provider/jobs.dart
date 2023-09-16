@@ -27,9 +27,9 @@ class Jobs with ChangeNotifier {
     return _completedJobs;
   }
 
-  Future<void> fetchAndSetProducts() async {
-    var url =
-        '${AppUrl.jobs}.json?auth=$authToken&orderBy="creatorId"&equalTo="$userId"';
+  Future<void> fetchAndSetProducts({String? uId}) async {
+    var url = uId == null ?
+        '${AppUrl.jobs}.json?auth=$authToken&orderBy="creatorId"&equalTo="$userId"' : '${AppUrl.jobs}.json?auth=$authToken&orderBy="creatorId"&equalTo="$uId"';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.body == 'null') {
@@ -38,7 +38,7 @@ class Jobs with ChangeNotifier {
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
 
       url =
-          '${AppUrl.baseUrl}/user-completed-jobs/$userId.json?auth=$authToken';
+          uId == null ? '${AppUrl.baseUrl}/user-completed-jobs/$userId.json?auth=$authToken' : '${AppUrl.baseUrl}/user-completed-jobs/$uId.json?auth=$authToken';
       final completedResponse = await http.get(Uri.parse(url));
       final completeData = json.decode(completedResponse.body);
       final List<JobData> loadedPendingJobs = [];

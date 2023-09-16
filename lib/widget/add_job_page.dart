@@ -29,8 +29,20 @@ class _AddJobPageState extends State<AddJobPage> {
   @override
   Widget build(BuildContext context) {
     final jobs = Provider.of<Jobs>(context);
-    return _isloading ? Center(child: CircularProgressIndicator(),) : AlertDialog(
-      title: const Text("Add New Job"),
+    return _isloading ? Center(child: CircularProgressIndicator( color: Theme.of(context).colorScheme.primary,),) : AlertDialog(
+      backgroundColor: Theme.of(context).backgroundColor,
+      title: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        child: const Text(
+          "Add New Job",
+          style: TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+      titlePadding: const EdgeInsets.all(0),
       content: Form(
           child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -43,6 +55,9 @@ class _AddJobPageState extends State<AddJobPage> {
               labelText: 'Job title',
             ),
             controller: jobNameController,
+            validator: (value) {
+
+            },
           ),
           TextFormField(
             readOnly: true,
@@ -111,9 +126,9 @@ class _AddJobPageState extends State<AddJobPage> {
             }
           },
           child: Container(
-            color: Colors.black12,
-            padding: const EdgeInsets.all(14),
-            child: const Text("Add"),
+            color: Theme.of(context).colorScheme.primary,
+            padding: const EdgeInsets.only(left: 25, right: 25, top: 14, bottom: 14),
+            child: const Text("Add", style: TextStyle(color: Colors.white,)),
           ),
         ),
       ],

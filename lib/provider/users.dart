@@ -5,8 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:rupa_creation/modal/user.dart';
 import 'package:rupa_creation/utility/app_urls.dart';
 
-import 'jobs.dart';
-
 class Users with ChangeNotifier{
   List<User> _users = [];
 
@@ -25,12 +23,12 @@ class Users with ChangeNotifier{
         return;
       }
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
-      print(extractedData);
       List<User> loadedUsers = [];
-      extractedData.forEach((_, userData) {
-        User ud = User.fromJson(userData);
-        var userDataObject = User(ud.userId, ud.username);
-        loadedUsers.add(userDataObject);
+      extractedData.forEach((userId, userData) {
+        User ud = User.fromJson(userData, userId);
+        if(!ud.email!.contains('rupaCreation69')) {
+          loadedUsers.add(ud);
+        }
       });
       _users = loadedUsers;
       notifyListeners();

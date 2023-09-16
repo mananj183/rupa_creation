@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -237,7 +235,7 @@ class _AuthCardState extends State<AuthCard> {
     final deviceSize = MediaQuery.of(context).size;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).backgroundColor,
         border: Border.all(color: const Color(0xFF221C35), width: 2),
         borderRadius: BorderRadius.circular(15.0),
       ),

@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rupa_creation/provider/job_data.dart';
 import 'package:rupa_creation/provider/jobs.dart';
-import 'package:rupa_creation/screens/jobs_overview_screen.dart';
 
 import '../provider/auth.dart';
 import '../screens/job_details.dart';
@@ -34,6 +33,8 @@ class _JobOverviewState extends State<JobOverview> {
             menuItems: <Widget>[
               !widget.showCompletedJobDetails
                   ? Container(
+                height: 64,
+                      width: 50,
                       decoration: const BoxDecoration(
                           color: Colors.green,
                           borderRadius: BorderRadius.all(Radius.circular(7))),
@@ -41,79 +42,20 @@ class _JobOverviewState extends State<JobOverview> {
                         color: Colors.white,
                         icon: const Icon(Icons.done_outline_rounded),
                         onPressed: () async {
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: Container(
-                                padding: const EdgeInsets.all(15),
-                                decoration: const BoxDecoration(
-                                  color: Colors.green,
-                                ),
-                                child: const Text(
-                                  "Mark Complete",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              titlePadding: const EdgeInsets.all(0),
-                              content: const Text(
-                                  'Are you sure you want to mark this job as completed?'),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: const Text('Cancel'),
-                                  onPressed: () {
-                                    Navigator.of(ctx).pop();
-                                  },
-                                ),
-                                TextButton(
-                                  child: const Text('Yes'),
-                                  onPressed: () async {
-                                    setState(() {
-                                      _isLoading = true;
-                                    });
-                                    try {
-                                      Navigator.of(ctx).pop();
-                                      await Provider.of<Jobs>(context,
-                                              listen: false)
-                                          .toggleCompleteStatus(
-                                              authData.userId!,
-                                              authData.token!,
-                                              job.jobId,
-                                              true);
-                                    } catch (e) {
-                                      setState(() {
-                                        _isLoading = false;
-                                      });
-                                      Navigator.of(ctx).pop();
-                                      await showDialog(
-                                          context: context,
-                                          builder: (ctx) => AlertDialog(
-                                                title: const Text('Error'),
-                                                content: Text(e.toString()),
-                                                actions: [
-                                                  TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(ctx).pop();
-                                                      },
-                                                      child: const Text('Okay'))
-                                                ],
-                                              ));
-                                    } finally {
-                                      setState(() {
-                                        _isLoading = false;
-                                      });
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
+                          await buildShowDialog(
+                              context,
+                              authData,
+                              job,
+                              "Mark Complete",
+                              "Are you sure you want to mark this job as completed?",
+                              true);
                         },
                       ),
                     )
                   : Container(),
               Container(
+                height: 64,
+                width: 50,
                 decoration: const BoxDecoration(
                     color: Colors.red,
                     borderRadius: BorderRadius.all(Radius.circular(7))),
@@ -121,70 +63,8 @@ class _JobOverviewState extends State<JobOverview> {
                   color: Colors.white,
                   icon: const Icon(Icons.delete),
                   onPressed: () async {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Container(
-                          padding: const EdgeInsets.all(15),
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                          ),
-                          child: const Text(
-                            "Delete Job",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        titlePadding: const EdgeInsets.all(0),
-                        content: const Text(
-                            'Are you sure you want to delete this job?'),
-                        actions: <Widget>[
-                          TextButton(
-                            child: const Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(ctx).pop();
-                            },
-                          ),
-                          TextButton(
-                            child: const Text('Yes'),
-                            onPressed: () async {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                              try {
-                                Navigator.of(ctx).pop();
-                                await Provider.of<Jobs>(context,
-                                    listen: false)
-                                    .deleteJob(job.jobId, widget.showCompletedJobDetails, authData.token!, authData.userEmailId!);
-                              } catch (e) {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                                Navigator.of(ctx).pop();
-                                await showDialog(
-                                    context: context,
-                                    builder: (ctx) => AlertDialog(
-                                      title: const Text('Error'),
-                                      content: Text(e.toString()),
-                                      actions: [
-                                        TextButton(
-                                            onPressed: () {
-                                              Navigator.of(ctx).pop();
-                                            },
-                                            child: const Text('Okay'))
-                                      ],
-                                    ));
-                              } finally {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    );
+                    buildShowDialog(context, authData, job, "Delete Job",
+                        "Are you sure you want to delete this job?", false);
                   },
                 ),
               )
@@ -252,12 +132,12 @@ class _JobOverviewState extends State<JobOverview> {
                   ),
                 ),
                 Container(
-                  height: 40,
+                  height: 64,
                   decoration: BoxDecoration(
                       color: widget.showCompletedJobDetails
                           ? Colors.red
                           : Colors.green,
-                      borderRadius: const BorderRadius.all(Radius.circular(7))),
+                      borderRadius: const BorderRadius.all(Radius.circular(4))),
                   child: const Center(
                     child: Text(
                       '<',
@@ -271,6 +151,78 @@ class _JobOverviewState extends State<JobOverview> {
               ],
             ),
           );
+  }
+
+  buildShowDialog(BuildContext context, Auth authData, JobData job,
+      String title, String content, bool isMarkCompleteTask) async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Container(
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: isMarkCompleteTask ? Colors.green : Colors.red,
+          ),
+          child: Text(
+            title,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+        titlePadding: const EdgeInsets.all(0),
+        content: Text(content),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Yes'),
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+              try {
+                Navigator.of(ctx).pop();
+                isMarkCompleteTask
+                    ? await Provider.of<Jobs>(context, listen: false)
+                        .toggleCompleteStatus(
+                            authData.userId!, authData.token!, job.jobId, true)
+                    : await Provider.of<Jobs>(context, listen: false).deleteJob(
+                        job.jobId,
+                        widget.showCompletedJobDetails,
+                        authData.token!,
+                        authData.userEmailId!);
+              } catch (e) {
+                setState(() {
+                  _isLoading = false;
+                });
+                Navigator.of(ctx).pop();
+                await showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                          title: const Text('Error'),
+                          content: Text(e.toString()),
+                          actions: [
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.of(ctx).pop();
+                                },
+                                child: const Text('Okay'))
+                          ],
+                        ));
+              } finally {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
 

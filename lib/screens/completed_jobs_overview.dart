@@ -9,9 +9,10 @@ class CompletedJobsOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Completed Jobs'),),
+      appBar: AppBar(title: Text('Completed Jobs'),backgroundColor: Theme.of(context).colorScheme.secondary,),
+      backgroundColor: Theme.of(context).backgroundColor,
       body: const JobList(showCompletedJobs: true),
-      drawer: AppDrawer(),
+      drawer: const AppDrawer(),
     );
   }
 }

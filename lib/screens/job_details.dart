@@ -27,7 +27,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final arguments = ModalRoute.of(context)!.settings.arguments as ScreenArguments;
+    final arguments =
+        ModalRoute.of(context)!.settings.arguments as ScreenArguments;
     final jobId = arguments.jobId;
     bool showCompletedJobDetails = arguments.showCompletedJobDetails;
     final loadedJobs = Provider.of<Jobs>(
@@ -77,10 +78,12 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(loadedJob.title),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
       ),
+      backgroundColor: Theme.of(context).backgroundColor,
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
+          ? Center(
+              child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
             )
           : Container(
               padding: const EdgeInsets.all(10),
@@ -88,14 +91,15 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   showCompletedJobDetails
-                      ? const Text(
-                              'Timestamps',
-                    textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.w700),
-
-
-                            )
+                      ? const Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Text(
+                            'Timestamps',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w700),
+                          ),
+                      )
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -105,7 +109,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   style: TextButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 10, horizontal: 50),
-                                      backgroundColor: Colors.blue,
+                                      backgroundColor: Theme.of(context).colorScheme.secondary,
                                       shape: const StadiumBorder()),
                                   onPressed: () async {
                                     setState(() {
@@ -123,9 +127,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       });
                                     }
                                   },
-                                  child: const Text(
+                                  child: Text(
                                     "Start",
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(color: Theme.of(context).colorScheme.primary,),
                                   )),
                             ),
                             //   ],
@@ -139,7 +143,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                 style: TextButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 10, horizontal: 50),
-                                    backgroundColor: Colors.blue,
+                                    backgroundColor: Theme.of(context).colorScheme.secondary,
                                     shape: const StadiumBorder()),
                                 onPressed: () async {
                                   setState(() {
@@ -150,33 +154,16 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                         loggedInUser.userId!,
                                         loggedInUser.token!);
                                   } catch (e) {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (ctx) => AlertDialog(
-                                        title: Text(e.toString()),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Container(
-                                              color: Colors.green,
-                                              padding: const EdgeInsets.all(14),
-                                              child: const Text("okay"),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
+                                    await buildShowDialog(context, e);
                                   } finally {
                                     setState(() {
                                       _isLoading = false;
                                     });
                                   }
                                 },
-                                child: const Text(
+                                child: Text(
                                   "Stop",
-                                  style: TextStyle(color: Colors.white),
+                                  style: TextStyle(color: Theme.of(context).colorScheme.primary),
                                 ),
                               ),
                             ),
@@ -189,7 +176,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                       builder: (context, _) {
                         final job = context.watch<JobData>();
                         return Table(
-                          border: TableBorder.all(color: Colors.blue),
+                          border: TableBorder.all(color: Theme.of(context).colorScheme.primary),
                           children: createTimeStampTable(job.timestamps),
                         );
                       }),
@@ -248,22 +235,21 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                               icon:
                                                   const Icon(Icons.add_a_photo),
                                               onPressed: () async {
-                                                if(!showCompletedJobDetails) {
+                                                if (!showCompletedJobDetails) {
                                                   try {
                                                     setState(() {
                                                       _isLoading = true;
                                                     });
                                                     await selectAndUploadFile(
-                                                        loggedInUser
-                                                            .userEmailId!,
-                                                        jobId)
+                                                            loggedInUser
+                                                                .userEmailId!,
+                                                            jobId)
                                                         .then((imageUrl) async {
                                                       if (imageUrl == null) {
                                                         return;
                                                       }
                                                       try {
-                                                        await loadedJob
-                                                            .addProgressImage(
+                                                        await loadedJob.addProgressImage(
                                                             imageUrl,
                                                             loggedInUser
                                                                 .userId!,
