@@ -7,7 +7,9 @@ import 'package:rupa_creation/screens/jobs_overview_screen.dart';
 import '../provider/auth.dart';
 
 class AppDrawer extends StatelessWidget {
-  const AppDrawer({Key? key}) : super(key: key);
+  final String? uId;
+  final String? uEmail;
+  const AppDrawer({Key? key, this.uId, this.uEmail}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Pending Jobs'),
             onTap: () {
               Navigator.of(context)
-                  .pushReplacement(MaterialPageRoute(builder: (_) => const JobOverviewScreen()));
+                  .pushReplacement(MaterialPageRoute(builder: (_) => JobOverviewScreen(uid: uId, uEmail: uEmail,)));
             },
           ),
           const Divider(),
@@ -44,7 +46,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Completed Jobs'),
             onTap: () {
               Navigator.of(context)
-                  .pushReplacementNamed(CompletedJobsOverview.routeName);
+                  .pushReplacementNamed(CompletedJobsOverview.routeName, arguments: ScreenArguments(uid: uId, uEmail: uEmail));
             },
           ),
           const Divider(),

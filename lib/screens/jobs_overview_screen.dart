@@ -22,7 +22,7 @@ class JobOverviewScreen extends StatelessWidget {
         title: const Text("Pending Orders"),
         backgroundColor: Theme.of(context).colorScheme.secondary,
       ),
-      drawer: const AppDrawer(),
+      drawer: AppDrawer(uId: uid, uEmail: uEmail,),
       backgroundColor: Theme.of(context).backgroundColor,
       body: FutureBuilder(
           future: _refreshProducts(context),

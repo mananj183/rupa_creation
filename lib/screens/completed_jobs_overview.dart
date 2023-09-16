@@ -8,11 +8,25 @@ class CompletedJobsOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final arguments =
+    ModalRoute.of(context)!.settings.arguments as ScreenArguments;
+    final uId = arguments.uid;
+    final uEmail = arguments.uEmail;
     return Scaffold(
-      appBar: AppBar(title: Text('Completed Jobs'),backgroundColor: Theme.of(context).colorScheme.secondary,),
+      appBar: AppBar(
+        title: Text('Completed Jobs'),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+      ),
       backgroundColor: Theme.of(context).backgroundColor,
-      body: const JobList(showCompletedJobs: true),
-      drawer: const AppDrawer(),
+      body: JobList(showCompletedJobs: true, uid: uId, uEmail: uEmail,),
+      drawer: AppDrawer(uId: uId, uEmail: uEmail,),
     );
   }
+}
+
+class ScreenArguments {
+  final String? uid;
+  final String? uEmail;
+
+  ScreenArguments({this.uid, this.uEmail});
 }
