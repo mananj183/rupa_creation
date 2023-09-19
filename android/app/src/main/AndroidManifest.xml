@@ -3,7 +3,7 @@
    <application
         android:label="rupa_creation"
         android:name="${applicationName}"
-        android:icon="@drawable/rupa_logo">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"

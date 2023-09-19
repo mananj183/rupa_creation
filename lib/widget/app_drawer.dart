@@ -19,7 +19,7 @@ class AppDrawer extends StatelessWidget {
       child: Column(
         children: <Widget>[
           AppBar(
-            title: Text('Hello $name'),
+            title: uEmail == null ? Text('Hello $name') : Text('$uEmail'),
             automaticallyImplyLeading: false,
             backgroundColor: Theme.of(context).colorScheme.secondary,
           ),

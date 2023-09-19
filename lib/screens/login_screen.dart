@@ -27,7 +27,7 @@ class LoginScreen extends StatelessWidget {
                   height: deviceSize.height,
                   child: Image.asset(
                     'assets/images/login_bg.jpg',
-                    fit: BoxFit.fitHeight,
+                    fit: BoxFit.fill,
                     width: deviceSize.width,
                     height: deviceSize.height,
                   )),
@@ -35,7 +35,7 @@ class LoginScreen extends StatelessWidget {
             Column(
               children: [
                 Container(
-                  height: 120,
+                  height: deviceSize.height * 0.13,
                   width: deviceSize.width,
                   color: Colors.transparent,
                 ),
@@ -44,7 +44,7 @@ class LoginScreen extends StatelessWidget {
                   child: Stack(
                     children: [
                       Container(
-                          height: 110,
+                          height: deviceSize.height * 0.14,
                           width: deviceSize.width / 1.25,
                           decoration: BoxDecoration(
                               color: Colors.orangeAccent.shade400,
@@ -52,7 +52,7 @@ class LoginScreen extends StatelessWidget {
                                   topRight: Radius.circular(30),
                                   bottomRight: Radius.circular(30)))),
                       Container(
-                        height: 110,
+                        height: deviceSize.height * 0.14,
                         width: deviceSize.width / 1.25,
                         decoration: const BoxDecoration(
                             color: Colors.black12,
@@ -79,28 +79,28 @@ class LoginScreen extends StatelessWidget {
                                   padding: const EdgeInsets.only(left: 3),
                                   width: deviceSize.width / 1.4 -
                                       deviceSize.width / 7,
-                                  height: 45,
+                                  height: deviceSize.height * 0.057,
                                   color: Colors.transparent,
-                                  child: const Text('Rupa',
+                                  child: Text('Rupa',
                                       style: TextStyle(
-                                          fontSize: 47,
+                                          fontSize: deviceSize.height * 0.058,
                                           fontFamily: 'Alta',
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF221C35))),
+                                          color: const Color(0xFF221C35))),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.only(right: 1),
                                   alignment: Alignment.centerRight,
                                   width: deviceSize.width / 1.4 -
                                       deviceSize.width / 7,
-                                  height: 45,
+                                  height: deviceSize.height * 0.057,
                                   color: Colors.transparent,
-                                  child: const Text('Creation',
+                                  child: Text('Creation',
                                       style: TextStyle(
-                                          fontSize: 47,
+                                          fontSize: deviceSize.height * 0.058,
                                           fontFamily: 'Alta',
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF221C35))),
+                                          color: const Color(0xFF221C35))),
                                 ),
                               ],
                             )
@@ -239,9 +239,9 @@ class _AuthCardState extends State<AuthCard> {
         border: Border.all(color: const Color(0xFF221C35), width: 2),
         borderRadius: BorderRadius.circular(15.0),
       ),
-      height: _authMode == AuthMode.signup ? 290 : 200,
+      height: _authMode == AuthMode.signup ? deviceSize.height * 0.38 : deviceSize.height * 0.24,
       constraints:
-          BoxConstraints(minHeight: _authMode == AuthMode.signup ? 300 : 240),
+          BoxConstraints(minHeight: _authMode == AuthMode.signup ? deviceSize.height * 0.35 : deviceSize.height * 0.30),
       width: deviceSize.width * 0.75,
       padding: const EdgeInsets.all(16.0),
       child: Form(
